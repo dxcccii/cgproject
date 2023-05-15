@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Three.js Template</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three/examples/js/controls/OrbitControls.js"></script>
+    <script type="module">
+      import TWEEN from "https://cdn.jsdelivr.net/npm/@tweenjs/tween.js@18.5.0/dist/tween.esm.js";
+
+      // Set up the scene, camera, and renderer
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+      );
+      const renderer = new THREE.WebGLRenderer();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      // camera position inside the skysphere
+      camera.position.set(1, 1, 20);
+
+      // possible movement directions
+      const directions = {
+        KeyW: new THREE.Vector3(0, 0, -1),
+        KeyS: new THREE.Vector3(0, 0, 1),
+        KeyA: new THREE.Vector3(-1, 0, 0),
+        KeyD: new THREE.Vector3(1, 0, 0),
+      };
+
+      // Keep track of the pressed keys
+      const pressedKeys = {};
+
+      // Define the camera movement speed
+      const movementSpeed = 7; // units per second
+
+      // Set up jump animation variables
+      const gravity = 0.01;
+      const jumpHeight = 2; // height of the jump in world units
+      const jumpDuration = 500; // duration of the jump animation in milliseconds
+      let isJumping = false; // flag to prevent multiple jumps
+      let jumpStart = null; // starting height of the jump
+
+      // Keep track of the current movement direction and tween
+      let movementDirection = null;
+      let movementTween = null;
+
+      // event listeners to for movement and jumping
+      document.addEventListener("keydown", (event) => {
+        if (isJumping) {
+          return;
+        }
+        const keyCode = event.code;
+        if (keyCode in directions) {
+          pressedKeys[keyCode] = true;
+          updateMovementDirection();
+          moveCamera();
+        } else if (keyCode === "Space") {
+          jump();
+        }
+      });
+
+      document.addEventListener("keyup", (event) => {
+        const keyCode = event.code;
+        if (keyCode in directions) {
+          pressedKeys[keyCode] = false;
+          updateMovementDirection();
+          if (!Object.values(pressedKeys).some((value) => value)) {
+            stopMovement();
+          }
+        }
+      });
+
+      let initialCameraDirection = new THREE.Vector3();
+      camera.getWorldDirection(initialCameraDirection);
+
+      // movement direction based on pressed keys
+      function updateMovementDirection() {
+        let x = 0;
+        let z = 0;
+        const cameraDirection = new THREE.Vector3();
+        camera.getWorldDirection(cameraDirection);
+
+        if (pressedKeys.KeyW) {
+          z -= 1;
+        }
+        if (pressedKeys.KeyS) {
+          z += 1;
+        }
+        if (pressedKeys.KeyA) {
+          x -= 1;
+        }
+        if (pressedKeys.KeyD) {
+          x += 1;
+        }
+
+        if (x !== 0 || z !== 0) {
+          const cameraDirection = new THREE.Vector3();
+          camera.getWorldDirection(cameraDirection);
+          const rotationQuaternion = new THREE.Quaternion().setFromUnitVectors(
+            initialCameraDirection,
+            cameraDirection
+          );
+          movementDirection = new THREE.Vector3(x, 0, z)
+            .applyQuaternion(rotationQuaternion)
+            .normalize();
+          const nextPosition = camera.position.clone().add(movementDirection);
+          if (nextPosition.y >= 1 || nextPosition.y <= 1) {
+            movementDirection.y -= nextPosition.y - 1; // adjust y to stay below y=1
+          }
+        } else {
+          movementDirection = null;
+        }
+      }
+
+      // camera movement
+      //DO NOT TOUCH
+      function moveCamera() {
+        if (movementDirection) {
+          const distance = movementDirection
+            .clone()
+            .multiplyScalar(movementSpeed);
+          const duration = (distance.length() * 1000) / movementSpeed;
+          if (movementTween) {
+            movementTween.stop();
+          }
+          movementTween = new TWEEN.Tween(camera.position)
+            .to(camera.position.clone().add(distance), duration)
+            .easing(TWEEN.Easing.Linear.None)
+            .onComplete(() => {
+              movementTween = null;
+              //to make the camera keep moving in the direction still being pressed after it hits the ground
+              //set the movementTween variable to null when the tween completes
+
+              if (!isJumping) {
+                if (camera.position.y <= 1.05 && !isJumping) {
+                  camera.position.y += camera.velocity ? camera.velocity : 0;
+                  camera.velocity -= gravity;
+                  moveCamera(); // keep moving in the same direction
+                } else {
+                  camera.velocity = 0;
+                }
+                camera.position.y += camera.velocity ? camera.velocity : 0;
+              } else {
+                let x = camera.position.x;
+                let z = camera.position.z;
+              }
+            })
+            .start();
+        }
+
+        //tilt and pan(in in the ass)
+        document.addEventListener("mousemove", (event) => {
+          const x = (event.clientX / window.innerWidth) * 2 - 1;
+          const y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+          // Calculate y rotation based on x movement
+          const panAngle = Math.PI / 4; // maximum pan angle
+          const maxPanAngle = panAngle;
+          const minPanAngle = -panAngle; // minimum pan angle
+          const xRotationRange = maxPanAngle - minPanAngle;
+          camera.rotation.y = x * xRotationRange + minPanAngle;
+
+          // Calculate x rotation based on y movement
+          const tiltAngle = Math.PI / 4; // maximum tilt angle
+          const maxYAngle = tiltAngle;
+          const minYAngle = -tiltAngle; // minimum tilt angle
+          const yRotationRange = maxYAngle - minYAngle;
+          camera.rotation.x = y * yRotationRange + minYAngle;
+
+          // Set camera up vector to (0, 1, 0) to keep it upright
+          camera.up.set(0, 1, 0);
+
+          // Set camera's lookAt target to a point in front of the camera
+          const distance = 1; // distance to target
+          const lookAtTarget = new THREE.Vector3(
+            camera.position.x + distance * Math.sin(camera.rotation.y),
+            camera.position.y - distance * Math.sin(camera.rotation.x),
+            camera.position.z - distance * Math.cos(camera.rotation.y)
+          );
+          camera.lookAt(lookAtTarget);
+        });
+      }
+
+      // stop camera movement
+      function stopMovement() {
+        if (movementTween) {
+          movementTween.stop();
+          movementTween = null;
+        }
+      }
+
+      // jumping (off the cliff)
+      //DO NOT TOUCH
+      function jump() {
+        if (isJumping) return; // no double jumping
+        isJumping = true;
+        jumpStart = camera.position.y;
+        const jumpTween = new TWEEN.Tween(camera.position)
+          .to({ y: jumpStart + jumpHeight }, jumpDuration / 2)
+          .easing(TWEEN.Easing.Quadratic.Out)
+          .onComplete(() => {
+            const direction = movementDirection
+              ? movementDirection.clone()
+              : null;
+            new TWEEN.Tween(camera.position)
+              .to({ y: jumpStart }, jumpDuration / 2)
+              .easing(TWEEN.Easing.Quadratic.In)
+              .onComplete(() => {
+                isJumping = false;
+                if (direction) {
+                  //bunny hop exploit for speed runners, thank me later
+                  updateMovementDirection();
+                  moveCamera();
+                }
+              })
+              .start();
+          })
+          .start();
+      }
+
+      // store direction (for science, trust me, i wont give it to NSA)
+      function getKeyCode(direction) {
+        if (direction.equals(directions.ArrowUp)) {
+          return "ArrowUp";
+        } else if (direction.equals(directions.ArrowDown)) {
+          return "ArrowDown";
+        } else if (direction.equals(directions.ArrowLeft)) {
+          return "ArrowLeft";
+        } else if (direction.equals(directions.ArrowRight)) {
+          return "ArrowRight";
+        } else {
+          return null;
+        }
+      }
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+      scene.add(ambientLight);
+
+      // skysphere
+      const textureLoader = new THREE.TextureLoader();
+
+      // beautiful texture i made for the sky
+      const texture = textureLoader.load("./Images/skysphere.png");
+      const skyGeometry = new THREE.SphereGeometry(500, 60, 40);
+      const skyMaterial = new THREE.MeshBasicMaterial({
+        map: texture,
+        side: THREE.BackSide,
+      });
+
+      const skySphere = new THREE.Mesh(skyGeometry, skyMaterial);
+      skySphere.material.side = THREE.BackSide;
+      scene.add(skySphere);
+
+      // floor(ed by my ability to still undertand whats going on)
+      const floorGeometry = new THREE.PlaneGeometry(1000, 1000, 1, 1);
+      const floorTexture = textureLoader.load("/Images/floortile.png");
+      floorTexture.wrapS = THREE.RepeatWrapping;
+      floorTexture.wrapT = THREE.RepeatWrapping;
+      floorTexture.repeat.set(200, 200);
+      const floorMaterial = new THREE.MeshStandardMaterial({
+        map: floorTexture,
+      });
+      const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+      floor.rotation.x = -Math.PI / 2;
+      scene.add(floor);
+
+      //add grandfather (fist model uau)
+      var grandfather = new THREE.Group();
+
+      // create body, head and nose (spheres)
+      const ClownTexture = textureLoader.load("/Images/clown_lower.png");
+      const ClownMaterial = new THREE.MeshStandardMaterial({
+        map: ClownTexture,
+        displacementMap: ClownTexture, // Set the displacement map texture
+        displacementScale: 0.1, // Adjust the strength of the displacement effect
+      });
+
+      const FaceTexture = textureLoader.load("/Images/face.png");
+      const FaceMaterial = new THREE.MeshStandardMaterial({
+        map: FaceTexture,
+        displacementMap: FaceTexture, // Set the displacement map texture
+        displacementScale: 0.1, // Adjust the strength of the displacement effect
+      });
+
+      const NoseTexture = textureLoader.load("/Images/nose.png");
+      const NoseMaterial = new THREE.MeshStandardMaterial({
+        map: NoseTexture,
+        displacementMap: NoseTexture, // Set the displacement map texture
+        displacementScale: 0, // Adjust the strength of the displacement effect
+      });
+
+      const sphereGeometry1 = new THREE.SphereGeometry(2, 32, 32); //body
+      const sphereGeometry2 = new THREE.SphereGeometry(1, 32, 32); //head
+      const sphereGeometry3 = new THREE.SphereGeometry(0.25, 32, 32); //nose
+      const sphereMaterial = new THREE.MeshPhongMaterial({ color: 0xff0000 });
+      const sphere1 = new THREE.Mesh(sphereGeometry1, ClownMaterial); //body
+      const sphere2 = new THREE.Mesh(sphereGeometry2, FaceMaterial); //head
+      const sphere3 = new THREE.Mesh(sphereGeometry3, NoseMaterial); //nose
+      sphere1.position.y = 2; //body
+      sphere2.position.y = 4.7; //head
+      sphere3.position.y = 4.6;
+      sphere3.position.x = 1; //nose
+
+      // create the hat (cone)
+      const HatTexture = textureLoader.load("/Images/hat buttons.png");
+      const HatMaterial = new THREE.MeshStandardMaterial({
+        map: HatTexture,
+        displacementMap: HatTexture, // Set the displacement map texture
+        displacementScale: 0, // Adjust the strength of the displacement effect
+      });
+
+      const coneGeometry = new THREE.ConeGeometry(1, 2, 32);
+      const coneMaterial = new THREE.MeshPhongMaterial({ color: 0xffff00 });
+      const cone = new THREE.Mesh(coneGeometry, HatMaterial);
+      cone.position.y = 6.2;
+      cone.rotation.y = -Math.PI / 2; // Apply a 90 degree rotation around the X axis
+
+      // create the hat brim (torus)
+      var torusGeometry = new THREE.TorusGeometry(0.8, 0.2, 16, 100);
+      var torusMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+      var torus = new THREE.Mesh(torusGeometry, NoseMaterial);
+      torus.position.y = 5.2;
+      torus.rotation.x = -Math.PI / 2;
+
+      //const axesHelper = new THREE.AxesHelper( 10 );
+      //axesHelper.position.y = 6.2;
+      //scene.add( axesHelper );
+
+      // add the sshapes to the group grandfather
+      grandfather.add(torus);
+      grandfather.add(sphere1);
+      grandfather.add(sphere2);
+      grandfather.add(sphere3);
+      grandfather.add(cone);
+
+      // rotate grandfather model to make it face the camera in the initial position
+      grandfather.rotation.y = -Math.PI / 2;
+
+      // create a listener
+      var listener = new THREE.AudioListener();
+
+      // Add the listener to the camera
+      camera.add(listener);
+
+      // background song
+      var bgsong = new THREE.Audio(listener);
+      var audioLoader = new THREE.AudioLoader();
+      audioLoader.load("./sounds/background song.mp3", function (buffer) {
+        bgsong.setBuffer(buffer);
+        bgsong.setLoop(true);
+        bgsong.setVolume(0.1);
+        bgsong.play();
+      });
+
+      // grandfather song
+      var gfsong = new THREE.Audio(listener);
+      var audioLoader = new THREE.AudioLoader();
+      audioLoader.load("./sounds/grandfather song.mp3", function (buffer) {
+        gfsong.setBuffer(buffer);
+        gfsong.setLoop(false);
+        gfsong.setVolume(0.5);
+      });
+
+      // Add grandfather model to scene
+      scene.add(grandfather);
+
+      // grandfather event
+      var isRotating = false;
+      document.addEventListener("keydown", function (event) {
+        var distance = grandfather.position.distanceTo(camera.position);
+        if (event.key === "e" && distance <= 7 && !isRotating) {
+          bgsong.pause();
+          isRotating = true;
+          var rotationAmount = Math.PI / 100;
+          var startTime = Date.now();
+          gfsong.play();
+          var rotateInterval = setInterval(function () {
+            var elapsedTime = Date.now() - startTime;
+            if (elapsedTime >= 54000) {
+              clearInterval(rotateInterval);
+              isRotating = false;
+              gfsong.stop(); // stop the sound when the animation is over
+              bgsong.play();
+            } else {
+              grandfather.rotation.y += rotationAmount;
+            }
+          }, 54);
+        }
+      });
+
+      // render the scene
+      function animate() {
+        requestAnimationFrame(animate);
+        if (isRotating) {
+          grandfather.rotation.y += Math.PI / 100;
+        }
+        TWEEN.update();
+        renderer.render(scene, camera);
+      }
+      
+      animate();
+    </script>
+  </body>
+</html>
