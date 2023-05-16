@@ -494,16 +494,31 @@
 
         // start sound if autoplay is supported
         const playPromise = bgsong.play();
-        if (playPromise !== undefined) {
+        if (playPromise instanceof Promise) {
           playPromise
             .then(() => {
-              // autoplay started successfully
+              // Autoplay started successfully
             })
             .catch((error) => {
-              // if autoplay was prevented by the browser
-              // handle the error or display a play button for the user to manually start playback
+              // If autoplay was prevented by the browser
+              // Handle the error or display a play button for the user to manually start playback
+              console.error("Autoplay failed:", error);
             });
+        } else {
+          // Old browser that doesn't support Promises
+          bgsong.addEventListener("error", (error) => {
+            console.error("Playback error:", error);
+          });
         }
+      });
+
+      // collision sfx
+      var uhoh = new THREE.Audio(listener);
+      var audioLoader = new THREE.AudioLoader();
+      audioLoader.load("./sounds/uhoh.mp3", function (buffer) {
+        uhoh.setBuffer(buffer);
+        uhoh.setLoop(false);
+        uhoh.setVolume(0.1);
       });
 
       // grandfather song
@@ -512,7 +527,7 @@
       audioLoader.load("./sounds/grandfather song.mp3", function (buffer) {
         gfsong.setBuffer(buffer);
         gfsong.setLoop(false);
-        gfsong.setVolume(0.5);
+        gfsong.setVolume(0.3);
       });
 
       // add grandfather model to scene
@@ -580,12 +595,13 @@
       // animate the camera's bounce-back motion
       function animateCameraBounce() {
         if (cameraCollision) {
-          // calculate the direction from the grandfather's position to the camera's position
+          uhoh.play();// play collision sfx
+          // calculate the approach position
           var direction = new THREE.Vector3()
             .subVectors(camera.position, grandfather.position)
             .normalize();
 
-          // calculate the target position by moving the camera away from the grandfather only in the X and Z directions
+          // calculate the target position of bounce-back
           var targetPosition = new THREE.Vector3(
             camera.position.x,
             camera.position.y,
@@ -593,9 +609,9 @@
           );
           targetPosition.add(direction.multiplyScalar(4));
 
-          // use TWEEN to animate the bounce-back motion
+          // use TWEEN to animate the bounce-back motion of x and z
           new TWEEN.Tween(camera.position)
-            .to(targetPosition, 400) // set the duration of the animation
+            .to(targetPosition, 200) // set the duration of the animation
             .easing(TWEEN.Easing.Back.Out) // use an easing function for the bounce effect
             .onComplete(function () {
               animateCameraYPosition();
@@ -605,11 +621,10 @@
         }
       }
 
-      // animate the camera's Y position to 1
+      // use TWEEN to animate the bounce-back motion of y
       function animateCameraYPosition() {
-        // use TWEEN to animate the bounce-back motion
         new TWEEN.Tween(camera.position)
-          .to({ y: 1 }, 500) // set the duration of the animation
+          .to({ y: 1 }, 200) // set the duration of the animation
           .easing(TWEEN.Easing.Quadratic.InOut) // easing function for smoother motion
           .start();
       }
