@@ -1,33 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <link rel="stylesheet" href="clown.css">
+    <link rel="stylesheet" href="clown.css" />
     <meta charset="UTF-8" />
     <title>Three.js Template</title>
   </head>
   <body>
     <div class="sidebar" id="sidebar">
-    <img src="Images/menu.gif" alt="Image description">
-  </div>
+      <img src="Images/menu.gif" alt="Image description" />
+    </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three/examples/js/loaders/OBJLoader.js"></script>
     <script type="module">
       import TWEEN from "https://cdn.jsdelivr.net/npm/@tweenjs/tween.js@18.5.0/dist/tween.esm.js";
-      
+
       // show menu
       function toggleSidebar() {
-      var sidebar = document.getElementById('sidebar');
-      sidebar.classList.toggle('show-sidebar');
-      sidebar.classList.remove('hide-sidebar');
-    }
+        var sidebar = document.getElementById("sidebar");
+        sidebar.classList.toggle("show-sidebar");
+        sidebar.classList.remove("hide-sidebar");
+      }
 
-    // hide menu
-    function hideSidebar() {
-      var sidebar = document.getElementById('sidebar');
-      sidebar.classList.toggle('hide-sidebar');
-      sidebar.classList.remove('show-sidebar');
-    }
+      // hide menu
+      function hideSidebar() {
+        var sidebar = document.getElementById("sidebar");
+        sidebar.classList.toggle("hide-sidebar");
+        sidebar.classList.remove("show-sidebar");
+      }
       // set up the scene, camera, and renderer
       const scene = new THREE.Scene();
       const renderer = new THREE.WebGLRenderer();
@@ -523,7 +523,7 @@
       document.addEventListener("keydown", function (event) {
         var distance = grandfather.position.distanceTo(camera.position);
         if (event.key === "e" && distance <= 7 && !isRotating) {
-          hideSidebar() // hide menu during event
+          hideSidebar(); // hide menu during event
           ambientLight.intensity = 0.2;
           hemisphereLight.intensity = 0.3;
           spotLight.intensity = 5;
@@ -572,7 +572,7 @@
         var distance = cameraPosition.distanceTo(grandfatherPosition);
 
         if (distance < 3) {
-          // collision detected 
+          // collision detected
           cameraCollision = true;
         }
       }
