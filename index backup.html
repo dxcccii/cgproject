@@ -13,20 +13,95 @@
   <body>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three/examples/js/loaders/OBJLoader.js"></script>
     <script type="module">
       import TWEEN from "https://cdn.jsdelivr.net/npm/@tweenjs/tween.js@18.5.0/dist/tween.esm.js";
 
       // Set up the scene, camera, and renderer
       const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(
+      const renderer = new THREE.WebGLRenderer();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+      const perspectiveCamera = new THREE.PerspectiveCamera(
         75,
         window.innerWidth / window.innerHeight,
         0.1,
         1000
       );
-      const renderer = new THREE.WebGLRenderer();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      document.body.appendChild(renderer.domElement);
+      const orthographicCamera = new THREE.OrthographicCamera();
+
+      // Set the initial position of the orthographic camera
+      orthographicCamera.position.copy(perspectiveCamera.position);
+
+      // Set the threshold value for the camera's minimum height
+      const minHeight = 1; // Adjust this value as needed
+
+      // Helper function to calculate orthographic camera parameters based on perspective camera frustum
+      function calculateOrthographicParameters(perspectiveCamera, minHeight) {
+        const frustumHeight =
+          2 *
+          Math.tan(THREE.Math.degToRad(perspectiveCamera.fov) / 2) *
+          perspectiveCamera.position.z;
+        const frustumWidth = frustumHeight * perspectiveCamera.aspect;
+
+        const orthoHeight = frustumHeight * 1.5; // Increase the height by a factor of 1.5
+
+        const cameraBottom = orthographicCamera.position.y - orthoHeight / 2;
+
+        // Adjust the camera position if it falls below the minimum height
+        if (cameraBottom < minHeight) {
+          orthographicCamera.position.y += minHeight - cameraBottom;
+        }
+
+        return {
+          left: -frustumWidth / 2,
+          right: frustumWidth / 2,
+          top: orthographicCamera.position.y + orthoHeight / 2,
+          bottom: orthographicCamera.position.y - orthoHeight / 2,
+          near: orthographicCamera.near,
+          far: orthographicCamera.far,
+        };
+      }
+
+      // Initialize with the perspective camera
+      let camera = perspectiveCamera;
+      // Define the camera movement speed
+      var movementSpeed = 7; // units per second
+
+      // Toggle between perspective and orthographic camera
+      function toggleCamera() {
+        if (camera === perspectiveCamera) {
+          // Switch to orthographic camera
+
+          const orthoParams = calculateOrthographicParameters(
+            perspectiveCamera,
+            minHeight
+          );
+          orthographicCamera.left = orthoParams.left;
+          orthographicCamera.right = orthoParams.right;
+          orthographicCamera.top = orthoParams.top;
+          orthographicCamera.bottom = orthoParams.bottom;
+          orthographicCamera.near = orthoParams.near;
+          orthographicCamera.far = orthoParams.far;
+          orthographicCamera.updateProjectionMatrix();
+
+          camera = orthographicCamera;
+          camera.position.copy(perspectiveCamera.position);
+          movementSpeed = 30;
+        } else {
+          // Switch to perspective camera
+          movementSpeed = 7;
+          camera = perspectiveCamera;
+          camera.position.copy(orthographicCamera.position);
+        }
+      }
+
+      // Register keydown event listener
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "q") {
+          toggleCamera();
+        }
+      });
 
       // camera position inside the skysphere
       camera.position.set(1, 1, 20);
@@ -41,9 +116,6 @@
 
       // Keep track of the pressed keys
       const pressedKeys = {};
-
-      // Define the camera movement speed
-      const movementSpeed = 7; // units per second
 
       // Set up jump animation variables
       const gravity = 0.01;
@@ -159,38 +231,6 @@
             })
             .start();
         }
-
-        //tilt and pan(in in the ass)
-        document.addEventListener("mousemove", (event) => {
-          const x = (event.clientX / window.innerWidth) * 2 - 1;
-          const y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-          // Calculate y rotation based on x movement
-          const panAngle = Math.PI / 4; // maximum pan angle
-          const maxPanAngle = panAngle;
-          const minPanAngle = -panAngle; // minimum pan angle
-          const xRotationRange = maxPanAngle - minPanAngle;
-          camera.rotation.y = x * xRotationRange + minPanAngle;
-
-          // Calculate x rotation based on y movement
-          const tiltAngle = Math.PI / 4; // maximum tilt angle
-          const maxYAngle = tiltAngle;
-          const minYAngle = -tiltAngle; // minimum tilt angle
-          const yRotationRange = maxYAngle - minYAngle;
-          camera.rotation.x = y * yRotationRange + minYAngle;
-
-          // Set camera up vector to (0, 1, 0) to keep it upright
-          camera.up.set(0, 1, 0);
-
-          // Set camera's lookAt target to a point in front of the camera
-          const distance = 1; // distance to target
-          const lookAtTarget = new THREE.Vector3(
-            camera.position.x + distance * Math.sin(camera.rotation.y),
-            camera.position.y - distance * Math.sin(camera.rotation.x),
-            camera.position.z - distance * Math.cos(camera.rotation.y)
-          );
-          camera.lookAt(lookAtTarget);
-        });
       }
 
       // stop camera movement
@@ -201,6 +241,56 @@
         }
       }
 
+      //tilt and pan(in in the ass)
+      document.addEventListener("mousemove", (event) => {
+        const x = (event.clientX / window.innerWidth) * 2 - 1;
+        const y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+        //keep pan and tilt for perspective camera
+        if (camera == perspectiveCamera) {
+          // Calculate y rotation based on x movement
+          const panAngle = Math.PI / 8; // maximum pan angle
+          const maxPanAngle = panAngle;
+          const minPanAngle = -panAngle; // minimum pan angle
+          const xRotationRange = maxPanAngle - minPanAngle;
+          camera.rotation.y = x * xRotationRange + minPanAngle;
+
+          // Calculate x rotation based on y movement
+          const tiltAngle = Math.PI / 8; // maximum tilt angle
+          const maxYAngle = tiltAngle;
+          const minYAngle = -tiltAngle; // minimum tilt angle
+          const yRotationRange = maxYAngle - minYAngle;
+          camera.rotation.x = y * yRotationRange + minYAngle;
+        }
+        //limit pan and tilt for better view in orthographic camera
+        else if (camera == orthographicCamera) {
+          // Calculate y rotation based on x movement
+          const panAngle = Math.PI / 16; // maximum pan angle
+          const maxPanAngle = panAngle * 2;
+          const minPanAngle = -panAngle * 2; // minimum pan angle
+          const xRotationRange = maxPanAngle - minPanAngle;
+          camera.rotation.y = x * xRotationRange + minPanAngle;
+
+          // Calculate x rotation based on y movement
+          const tiltAngle = Math.PI / 16; // maximum tilt angle
+          const maxYAngle = tiltAngle;
+          const minYAngle = tiltAngle * 4; // minimum tilt angle
+          const yRotationRange = maxYAngle - minYAngle;
+          camera.rotation.x = y * yRotationRange + minYAngle;
+        }
+
+        // Set camera up vector to (0, 1, 0) to keep it upright
+        camera.up.set(0, 1, 0);
+
+        // Set camera's lookAt target to a point in front of the camera
+        const distance = 1; // distance to target
+        const lookAtTarget = new THREE.Vector3(
+          camera.position.x + distance * Math.sin(camera.rotation.y),
+          camera.position.y - distance * Math.sin(camera.rotation.x),
+          camera.position.z - distance * Math.cos(camera.rotation.y)
+        );
+        camera.lookAt(lookAtTarget);
+      });
       // jumping (off the cliff)
       //DO NOT TOUCH
       function jump() {
@@ -245,8 +335,37 @@
         }
       }
 
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+      const ambientLight = new THREE.AmbientLight("white", 0.4);
       scene.add(ambientLight);
+
+      // Create a directional light
+      const directionalLight = new THREE.DirectionalLight("pink", 0.5);
+      directionalLight.position.set(1, 1, 1);
+      scene.add(directionalLight);
+
+      const hemisphereLight = new THREE.HemisphereLight(
+        "purple",
+        "purple",
+        0.5
+      );
+      scene.add(hemisphereLight);
+
+      // Create a spotlight
+      const spotLight = new THREE.SpotLight(
+        "purple",
+        1,
+        75,
+        Math.PI / 6,
+        0.2,
+        0
+      );
+
+      // Set the spotlight's position
+      spotLight.position.set(0, 7, 0);
+
+      // Set the spotlight's target position (where it is pointing)
+      const targetPosition = new THREE.Vector3(0, 0, 0);
+      spotLight.target.position.copy(targetPosition);
 
       // skysphere
       const textureLoader = new THREE.TextureLoader();
@@ -361,7 +480,19 @@
         bgsong.setBuffer(buffer);
         bgsong.setLoop(true);
         bgsong.setVolume(0.1);
-        bgsong.play();
+
+        // Start playback if autoplay is supported
+        const playPromise = bgsong.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              // Autoplay started successfully
+            })
+            .catch((error) => {
+              // Autoplay was prevented by the browser
+              // Handle the error or display a play button for the user to manually start playback
+            });
+        }
       });
 
       // grandfather song
@@ -381,9 +512,17 @@
       document.addEventListener("keydown", function (event) {
         var distance = grandfather.position.distanceTo(camera.position);
         if (event.key === "e" && distance <= 7 && !isRotating) {
+          ambientLight.intensity = 0.2;
+          hemisphereLight.intensity = 0.3;
+          spotLight.intensity = 5;
+          // Add the spotlight and its target to the scene
+          scene.add(spotLight);
+          scene.add(spotLight.target);
           bgsong.pause();
           isRotating = true;
           var rotationAmount = Math.PI / 100;
+          grandfather.rotation.y += rotationAmount;
+          console.log("click");
           var startTime = Date.now();
           gfsong.play();
           var rotateInterval = setInterval(function () {
@@ -391,25 +530,91 @@
             if (elapsedTime >= 54000) {
               clearInterval(rotateInterval);
               isRotating = false;
+              // return lighting back to normal
+              spotLight.intensity = 0;
+              ambientLight.intensity = 0.4;
+              hemisphereLight.intensity = 0.5;
               gfsong.stop(); // stop the sound when the animation is over
-              bgsong.play();
-            } else {
-              grandfather.rotation.y += rotationAmount;
+              bgsong.play(); // resume bg song
             }
           }, 54);
+        } else if (event.key === "e" && distance <= 7 && isRotating) {
+          isRotating = false;
+          gfsong.stop(); // stop the sound when the animation is over
+          bgsong.play(); // resume bg song
+          spotLight.intensity = 0;
+          // return lighting back to normal
+          ambientLight.intensity = 0.4;
+          hemisphereLight.intensity = 0.5;
         }
       });
+
+      var cameraCollision = false; // Flag to track camera collision
+
+      // Check for collision between the camera and the grandfather group
+      function checkCameraCollision() {
+        var cameraPosition = camera.position;
+        var grandfatherPosition = grandfather.position;
+        var distance = cameraPosition.distanceTo(grandfatherPosition);
+
+        if (distance < 3) {
+          // Collision detected between the camera and the grandfather group
+          cameraCollision = true;
+        }
+      }
+
+      // Animate the camera's bounce-back motion
+      function animateCameraBounce() {
+        if (cameraCollision) {
+          // Calculate the direction from the grandfather's position to the camera's position
+          var direction = new THREE.Vector3()
+            .subVectors(camera.position, grandfather.position)
+            .normalize();
+
+          // Calculate the target position by moving the camera away from the grandfather only in the X and Z directions
+          var targetPosition = new THREE.Vector3(
+            camera.position.x,
+            camera.position.y,
+            camera.position.z
+          );
+          targetPosition.add(direction.multiplyScalar(4));
+
+          // Use a tweening library like Tween.js to animate the camera's position
+          new TWEEN.Tween(camera.position)
+            .to(targetPosition, 400) // Set the duration of the animation (500 milliseconds in this example)
+            .easing(TWEEN.Easing.Back.Out) // Use an easing function for the bounce effect
+            .onComplete(function () {
+              animateCameraYPosition();
+              cameraCollision = false; // Reset the camera collision flag
+            })
+            .start();
+        }
+      }
+
+      // Animate the camera's Y position to 1
+      function animateCameraYPosition() {
+        // Use a tweening library like Tween.js to animate the camera's Y position
+        new TWEEN.Tween(camera.position)
+          .to({ y: 1 }, 500) // Set the duration of the animation (500 milliseconds in this example)
+          .easing(TWEEN.Easing.Quadratic.InOut) // Use an easing function for smoother motion
+          .start();
+      }
 
       // render the scene
       function animate() {
         requestAnimationFrame(animate);
+
         if (isRotating) {
           grandfather.rotation.y += Math.PI / 100;
+        } else {
+          grandfather.rotation.y += null;
         }
+        checkCameraCollision();
+        animateCameraBounce();
         TWEEN.update();
         renderer.render(scene, camera);
       }
-      
+
       animate();
     </script>
   </body>
