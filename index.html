@@ -595,7 +595,7 @@
       // animate the camera's bounce-back motion
       function animateCameraBounce() {
         if (cameraCollision) {
-          uhoh.play();// play collision sfx
+          uhoh.play(); // play collision sfx
           // calculate the approach position
           var direction = new THREE.Vector3()
             .subVectors(camera.position, grandfather.position)
@@ -628,6 +628,93 @@
           .easing(TWEEN.Easing.Quadratic.InOut) // easing function for smoother motion
           .start();
       }
+
+      //soda pop
+      // Create a group to hold the objects
+      var pop = new THREE.Group();
+
+      // Create materials for the objects
+
+      const poptexture = textureLoader.load("/Images/pop.jpg");
+      const popmaterial = new THREE.MeshStandardMaterial({
+        map: poptexture,
+        displacementMap: poptexture, // Set the displacement map texture
+        displacementScale: 0, // Adjust the strength of the displacement effect
+      });
+
+      const labeltexture = textureLoader.load("/Images/sodapoplabel.png");
+      const labelmaterial = new THREE.MeshStandardMaterial({
+        map: labeltexture,
+        displacementMap: labeltexture, // Set the displacement map texture
+        displacementScale: 0, // Adjust the strength of the displacement effect
+      });
+
+      const captexture = textureLoader.load("/Images/cap.png");
+      const capmaterial = new THREE.MeshStandardMaterial({
+        map: captexture,
+        displacementMap: captexture, // Set the displacement map texture
+        displacementScale: 0, // Adjust the strength of the displacement effect
+      });
+
+      // Create the objects
+      var cylinder1 = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.5, 0.5, 0.5, 32),
+        capmaterial
+      );
+      var cone2 = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.5, 1.5, 1, 32),
+        popmaterial
+      );
+      var cylinder2 = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.5, 1.5, 2, 32),
+        labelmaterial
+      );
+      var cylinder3 = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.5, 1.5, 3, 32),
+        popmaterial
+      );
+      var cone3 = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.5, 1.5, 1, 32),
+        popmaterial
+      );
+
+      // Set positions and rotations for the objects
+
+      cylinder1.position.y = 6.8;
+      cone3.position.y = 6;
+      cylinder3.position.y = 2;
+      cylinder2.position.y = 4.5;
+      cone2.position.y = 0;
+      cone2.rotation.x = Math.PI;
+
+      // Add the objects to the group
+      pop.add(cylinder1);
+      pop.add(cone2);
+      pop.add(cylinder2);
+      pop.add(cylinder3);
+      pop.add(cone3);
+      pop.position.x = 7;
+
+      // Add the group to the scene
+      scene.add(pop);
+
+      //make balnket
+      const blankettexture = textureLoader.load("/Images/blanket.png");
+      const blanketmaterial = new THREE.MeshStandardMaterial({
+        map: blankettexture,
+        displacementMap: blankettexture, // Set the displacement map texture
+        displacementScale: 0, // Adjust the strength of the displacement effect
+      });
+
+      // Create a geometry for the box
+      var blanketgeometry = new THREE.BoxGeometry(10, 0.5, 7); // Adjust the dimensions as desired
+
+      // Create the box mesh
+      var blanket = new THREE.Mesh(blanketgeometry, blanketmaterial);
+      blanket.position.x = -10;
+      blanket.position.y = 0;
+
+      scene.add(blanket);
 
       // render the scene
       function animate() {
