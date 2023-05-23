@@ -28,7 +28,7 @@
         sidebar.classList.toggle("hide-sidebar");
         sidebar.classList.remove("show-sidebar");
       }
-      // set up the scene, camera, and renderer
+      //set up the scene, camera, and renderer
       const scene = new THREE.Scene();
       const renderer = new THREE.WebGLRenderer();
       renderer.setSize(window.innerWidth, window.innerHeight);
@@ -41,13 +41,13 @@
       );
       const orthographicCamera = new THREE.OrthographicCamera();
 
-      // initial position of the orthographic camera
+      //initial position of the orthographic camera
       orthographicCamera.position.copy(perspectiveCamera.position);
 
-      // ortho camera's minimum height
+      //ortho camera's minimum height
       const minHeight = 1;
 
-      // calculate orthographic camera parameters based on perspective camera frustum
+      //calculate orthographic camera parameters based on perspective camera frustum
       function calculateOrthographicParameters(perspectiveCamera, minHeight) {
         const frustumHeight =
           2 *
@@ -55,11 +55,11 @@
           perspectiveCamera.position.z;
         const frustumWidth = frustumHeight * perspectiveCamera.aspect;
 
-        const orthoHeight = frustumHeight * 1.5; // increase the height by a factor of 1.5
+        const orthoHeight = frustumHeight * 1.5; //increase the height by a factor of 1.5
 
         const cameraBottom = orthographicCamera.position.y - orthoHeight / 2;
 
-        // adjust the camera position if it falls below the floor
+        //adjust the camera position if it falls below the floor
         if (cameraBottom < minHeight) {
           orthographicCamera.position.y += minHeight - cameraBottom;
         }
@@ -74,13 +74,13 @@
         };
       }
 
-      // perspective camera as default
+      //perspective camera as default
       let camera = perspectiveCamera;
 
-      // define the camera movement speed
+      //define the camera movement speed
       var movementSpeed = 7; // units per second
 
-      // toggle between perspective and orthographic camera
+      //toggle between perspective and orthographic camera
       function toggleCamera() {
         if (camera === perspectiveCamera) {
           // switch to orthographic camera
