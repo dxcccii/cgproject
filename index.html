@@ -361,7 +361,7 @@
       );
       scene.add(hemisphereLight);
 
-      // create a spotlight
+      //create a spotlight
       const spotLight = new THREE.SpotLight(
         "purple",
         1,
@@ -371,17 +371,17 @@
         0
       );
 
-      // spotlight position
+      //spotlight position
       spotLight.position.set(0, 7, 0);
 
-      // where the spotlight is pointing at
+      //where the spotlight is pointing at
       const targetPosition = new THREE.Vector3(0, 0, 0);
       spotLight.target.position.copy(targetPosition);
 
-      // skysphere
+      //skysphere
       const textureLoader = new THREE.TextureLoader();
 
-      // beautiful texture i made for the sky
+      //beautiful texture i made for the sky
       const texture = textureLoader.load("./Images/skysphere.png");
       const skyGeometry = new THREE.SphereGeometry(500, 60, 40);
       const skyMaterial = new THREE.MeshBasicMaterial({
