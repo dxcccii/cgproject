@@ -630,11 +630,10 @@
       }
 
       //soda pop
-      // Create a group to hold the objects
+      // create a group to hold components of soda pop
       var pop = new THREE.Group();
 
-      // Create materials for the objects
-
+      // call textures for the objects
       const poptexture = textureLoader.load("/Images/pop.jpg");
       const popmaterial = new THREE.MeshStandardMaterial({
         map: poptexture,
@@ -656,7 +655,7 @@
         displacementScale: 0, // Adjust the strength of the displacement effect
       });
 
-      // Create the objects
+      // create the objects
       var cylinder1 = new THREE.Mesh(
         new THREE.CylinderGeometry(0.5, 0.5, 0.5, 32),
         capmaterial
@@ -678,8 +677,7 @@
         popmaterial
       );
 
-      // Set positions and rotations for the objects
-
+      // set positions and rotations for the objects
       cylinder1.position.y = 6.8;
       cone3.position.y = 6;
       cylinder3.position.y = 2;
@@ -687,7 +685,7 @@
       cone2.position.y = 0;
       cone2.rotation.x = Math.PI;
 
-      // Add the objects to the group
+      // Add the objects to the create soda pop
       pop.add(cylinder1);
       pop.add(cone2);
       pop.add(cylinder2);
@@ -695,10 +693,13 @@
       pop.add(cone3);
       pop.position.x = 7;
 
-      // Add the group to the scene
+      // Add the soda pop to the scene
       scene.add(pop);
 
-      //make balnket
+      //make blanket
+      var blanketgeometry = new THREE.BoxGeometry(10, 0.5, 7); // Adjust the dimensions as desired
+
+      //call texture
       const blankettexture = textureLoader.load("/Images/blanket.png");
       const blanketmaterial = new THREE.MeshStandardMaterial({
         map: blankettexture,
@@ -706,14 +707,14 @@
         displacementScale: 0, // Adjust the strength of the displacement effect
       });
 
-      // Create a geometry for the box
-      var blanketgeometry = new THREE.BoxGeometry(10, 0.5, 7); // Adjust the dimensions as desired
-
-      // Create the box mesh
+      // apply blanket texture
       var blanket = new THREE.Mesh(blanketgeometry, blanketmaterial);
+
+      //blanket position
       blanket.position.x = -10;
       blanket.position.y = 0;
 
+      //add blanket to scene
       scene.add(blanket);
 
       // render the scene
