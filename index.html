@@ -106,17 +106,17 @@
         }
       }
 
-      // register keydown event listener to toggle orthographic camera
+      //register keydown event listener to toggle orthographic camera
       document.addEventListener("keydown", function (event) {
         if (event.key === "q") {
           toggleCamera();
         }
       });
 
-      // camera position inside the skysphere
+      //camera position inside the skysphere
       camera.position.set(1, 1, 20);
 
-      // possible movement directions
+      //possible movement directions
       const directions = {
         KeyW: new THREE.Vector3(0, 0, -1),
         KeyS: new THREE.Vector3(0, 0, 1),
@@ -127,18 +127,18 @@
       // keep track of the pressed keys
       const pressedKeys = {};
 
-      // set up jump animation variables
+      //set up jump animation variables
       const gravity = 0.01;
       const jumpHeight = 2; // height of the jump in world units
       const jumpDuration = 500; // duration of the jump animation in milliseconds
       let isJumping = false; // flag to prevent multiple jumps
       let jumpStart = null; // starting height of the jump
 
-      // keep track of the current movement direction and tween
+      //keep track of the current movement direction and tween
       let movementDirection = null;
       let movementTween = null;
 
-      // event listeners to for movement and jumping
+      //event listeners to for movement and jumping
       document.addEventListener("keydown", (event) => {
         if (isJumping) {
           return;
@@ -167,7 +167,7 @@
       let initialCameraDirection = new THREE.Vector3();
       camera.getWorldDirection(initialCameraDirection);
 
-      // movement direction based on pressed keys
+      //movement direction based on pressed keys
       function updateMovementDirection() {
         let x = 0;
         let z = 0;
@@ -497,15 +497,15 @@
         if (playPromise instanceof Promise) {
           playPromise
             .then(() => {
-              // Autoplay started successfully
+              // autoplay started successfully
             })
             .catch((error) => {
-              // If autoplay was prevented by the browser
-              // Handle the error or display a play button for the user to manually start playback
+              // if autoplay was prevented by the browser
+              // handle the error or display a play button for the user to manually start playback
               console.error("Autoplay failed:", error);
             });
         } else {
-          // Old browser that doesn't support Promises
+          // old browser that doesn't support Promises
           bgsong.addEventListener("error", (error) => {
             console.error("Playback error:", error);
           });
@@ -629,7 +629,7 @@
           .start();
       }
 
-      //soda pop
+      // soda pop
       // create a group to hold components of soda pop
       var pop = new THREE.Group();
 
@@ -685,7 +685,7 @@
       cone2.position.y = 0;
       cone2.rotation.x = Math.PI;
 
-      // Add the objects to the create soda pop
+      // add the objects to the create soda pop
       pop.add(cylinder1);
       pop.add(cone2);
       pop.add(cylinder2);
@@ -693,13 +693,13 @@
       pop.add(cone3);
       pop.position.x = 7;
 
-      // Add the soda pop to the scene
+      // add the soda pop to the scene
       scene.add(pop);
 
-      //make blanket
+      // make blanket
       var blanketgeometry = new THREE.BoxGeometry(10, 0.5, 7); // Adjust the dimensions as desired
 
-      //call texture
+      // call textures for blanket
       const blankettexture = textureLoader.load("/Images/blanket.png");
       const blanketmaterial = new THREE.MeshStandardMaterial({
         map: blankettexture,
