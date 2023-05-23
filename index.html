@@ -39,6 +39,8 @@
         0.1,
         1000
       );
+
+      //ortho camera
       const orthographicCamera = new THREE.OrthographicCamera();
 
       // initial position of the orthographic camera
@@ -710,13 +712,98 @@
       // apply blanket texture
       var blanket = new THREE.Mesh(blanketgeometry, blanketmaterial);
 
-      
       // blanket position
       blanket.position.x = -10;
       blanket.position.y = 0;
 
       // add blanket to scene
       scene.add(blanket);
+
+      // blanket event
+      var skyisRotating = false;
+      document.addEventListener("keydown", function (event) {
+        var distance = blanket.position.distanceTo(camera.position);
+        if (event.key === "e" && distance <= 4 && !skyisRotating) {
+          hideSidebar(); // hide menu during event
+          //add lighting if needed
+          skyisRotating = true;
+          var rotationAmount = Math.PI / 100;
+          skySphere.rotation.x += rotationAmount;
+          console.log("click");
+          var startTime = Date.now();
+          //play song event here
+          var rotateInterval = setInterval(function () {
+            var elapsedTime = Date.now() - startTime;
+            if (elapsedTime >= 30000) {
+              clearInterval(rotateInterval);
+              skyisRotating = false;
+              // return lighting back to normal here
+              toggleSidebar(); // show menu after event again
+              // stop the sound when the animation is over
+              // resume bg song
+            }
+          }, 30);
+        } else if (event.key === "e" && distance <= 7 && skyisRotating) {
+          skyisRotating = false;
+          // stop the sound when the animation is over
+          // resume bg song
+
+          // return lighting back to normal
+
+          toggleSidebar(); // show menu after event again
+        }
+      });
+
+      var cameraCollision = false; // flag to track camera collision
+
+      // check for collision between the camera and grandfather
+      function checkCameraCollision() {
+        var cameraPosition = camera.position;
+        var blanketPosition = blanket.position;
+        var distance = cameraPosition.distanceTo(blanketPosition);
+
+        if (distance < 3) {
+          // collision detected
+          cameraCollision = true;
+        }
+      }
+
+      // animate the camera's bounce-back motion
+      function animateCameraBounce() {
+        if (cameraCollision) {
+          uhoh.play(); // play collision sfx
+          // calculate the approach position
+          var direction = new THREE.Vector3()
+            .subVectors(camera.position, blanket.position)
+            .normalize();
+
+          // calculate the target position of bounce-back
+          var targetPosition = new THREE.Vector3(
+            camera.position.x,
+            camera.position.y,
+            camera.position.z
+          );
+          targetPosition.add(direction.multiplyScalar(4));
+
+          // use TWEEN to animate the bounce-back motion of x and z
+          new TWEEN.Tween(camera.position)
+            .to(targetPosition, 200) // set the duration of the animation
+            .easing(TWEEN.Easing.Back.Out) // use an easing function for the bounce effect
+            .onComplete(function () {
+              animateCameraYPosition();
+              cameraCollision = false; // reset the camera collision flag
+            })
+            .start();
+        }
+      }
+
+      // use TWEEN to animate the bounce-back motion of y
+      function animateCameraYPosition() {
+        new TWEEN.Tween(camera.position)
+          .to({ y: 1 }, 200) // set the duration of the animation
+          .easing(TWEEN.Easing.Quadratic.InOut) // easing function for smoother motion
+          .start();
+      }
 
       // render the scene
       function animate() {
@@ -734,9 +821,9 @@
       }
 
       animate();
-      
+
     </script>
 
   </body>
-
+  
 </html>
