@@ -703,11 +703,17 @@
 
       // call textures for blanket
       const blankettexture = textureLoader.load("/Images/blanket.png");
+      var bumpTexture = new THREE.TextureLoader().load("/Images/blanket.png");
       const blanketmaterial = new THREE.MeshStandardMaterial({
         map: blankettexture,
         displacementMap: blankettexture, // Set the displacement map texture
-        displacementScale: 0, // Adjust the strength of the displacement effect
+        displacementScale: 0.4, // Adjust the strength of the displacement effect
       });
+
+      // Set the bump map property of the material
+      blanketmaterial.bumpMap = blankettexture;
+      // Adjust the bump scale to control the intensity of the effect (optional)
+      blanketmaterial.bumpScale = 0.8;
 
       // apply blanket texture
       var blanket = new THREE.Mesh(blanketgeometry, blanketmaterial);
@@ -719,90 +725,40 @@
       // add blanket to scene
       scene.add(blanket);
 
-      // blanket event
-      var skyisRotating = false;
-      document.addEventListener("keydown", function (event) {
-        var distance = blanket.position.distanceTo(camera.position);
-        if (event.key === "e" && distance <= 4 && !skyisRotating) {
-          hideSidebar(); // hide menu during event
-          //add lighting if needed
-          skyisRotating = true;
-          var rotationAmount = Math.PI / 100;
-          skySphere.rotation.x += rotationAmount;
-          console.log("click");
-          var startTime = Date.now();
-          //play song event here
-          var rotateInterval = setInterval(function () {
-            var elapsedTime = Date.now() - startTime;
-            if (elapsedTime >= 30000) {
-              clearInterval(rotateInterval);
-              skyisRotating = false;
-              // return lighting back to normal here
-              toggleSidebar(); // show menu after event again
-              // stop the sound when the animation is over
-              // resume bg song
+      document.addEventListener("keypress", rotateSky, false);
+      let rotationZ = 0;
+      let isRotatingSky = false;
+
+      // Function to handle key press event
+      function rotateSky(event) {
+        if (event.key === "e") {
+          const distance = camera.position.distanceTo(blanket.position);
+          const threshold = 4; // Adjust this value according to your needs
+          // Check if the camera is close enough to the cube
+          if (distance < threshold) {
+            if (!isRotatingSky) {
+              console.log("oi");
+              // Rotate the skysphere to a new position
+              const targetRotationZ = rotationZ + Math.PI; // Rotate 180 degrees
+
+              new TWEEN.Tween(skySphere.rotation)
+                .to({ x: targetRotationZ * 8 }, 20000)
+                .easing(TWEEN.Easing.Quadratic.Out)
+                .start();
+
+              rotationZ = targetRotationZ;
+              isRotatingSky = true;
+            } else {
+              // Rotate the skysphere back to the original position
+              new TWEEN.Tween(skySphere.rotation)
+                .to({ x: rotationZ * 18 }, 20000)
+                .easing(TWEEN.Easing.Quadratic.Out)
+                .start();
+
+              isRotatingSky = false;
             }
-          }, 30);
-        } else if (event.key === "e" && distance <= 7 && skyisRotating) {
-          skyisRotating = false;
-          // stop the sound when the animation is over
-          // resume bg song
-
-          // return lighting back to normal
-
-          toggleSidebar(); // show menu after event again
+          }
         }
-      });
-
-      var cameraCollision = false; // flag to track camera collision
-
-      // check for collision between the camera and grandfather
-      function checkCameraCollision() {
-        var cameraPosition = camera.position;
-        var blanketPosition = blanket.position;
-        var distance = cameraPosition.distanceTo(blanketPosition);
-
-        if (distance < 3) {
-          // collision detected
-          cameraCollision = true;
-        }
-      }
-
-      // animate the camera's bounce-back motion
-      function animateCameraBounce() {
-        if (cameraCollision) {
-          uhoh.play(); // play collision sfx
-          // calculate the approach position
-          var direction = new THREE.Vector3()
-            .subVectors(camera.position, blanket.position)
-            .normalize();
-
-          // calculate the target position of bounce-back
-          var targetPosition = new THREE.Vector3(
-            camera.position.x,
-            camera.position.y,
-            camera.position.z
-          );
-          targetPosition.add(direction.multiplyScalar(4));
-
-          // use TWEEN to animate the bounce-back motion of x and z
-          new TWEEN.Tween(camera.position)
-            .to(targetPosition, 200) // set the duration of the animation
-            .easing(TWEEN.Easing.Back.Out) // use an easing function for the bounce effect
-            .onComplete(function () {
-              animateCameraYPosition();
-              cameraCollision = false; // reset the camera collision flag
-            })
-            .start();
-        }
-      }
-
-      // use TWEEN to animate the bounce-back motion of y
-      function animateCameraYPosition() {
-        new TWEEN.Tween(camera.position)
-          .to({ y: 1 }, 200) // set the duration of the animation
-          .easing(TWEEN.Easing.Quadratic.InOut) // easing function for smoother motion
-          .start();
       }
 
       // render the scene
@@ -821,9 +777,6 @@
       }
 
       animate();
-
     </script>
-
   </body>
-  
 </html>
