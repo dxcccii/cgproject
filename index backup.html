@@ -39,6 +39,8 @@
         0.1,
         1000
       );
+
+      //ortho camera
       const orthographicCamera = new THREE.OrthographicCamera();
 
       // initial position of the orthographic camera
@@ -701,22 +703,87 @@
 
       // call textures for blanket
       const blankettexture = textureLoader.load("/Images/blanket.png");
+      var bumpTexture = new THREE.TextureLoader().load("/Images/blanket.png");
       const blanketmaterial = new THREE.MeshStandardMaterial({
         map: blankettexture,
         displacementMap: blankettexture, // Set the displacement map texture
         displacementScale: 0, // Adjust the strength of the displacement effect
       });
 
+      // Set the bump map property of the material
+      blanketmaterial.bumpMap = blankettexture;
+      // Adjust the bump scale to control the intensity of the effect (optional)
+      blanketmaterial.bumpScale = 0.8;
+
       // apply blanket texture
       var blanket = new THREE.Mesh(blanketgeometry, blanketmaterial);
 
-      
       // blanket position
-      blanket.position.x = -10;
+      blanket.position.x = -20;
       blanket.position.y = 0;
 
       // add blanket to scene
       scene.add(blanket);
+
+      // blanket sound
+      var blsong = new THREE.Audio(listener);
+      var audioLoader = new THREE.AudioLoader();
+      audioLoader.load("./sounds/blanket song.mp3", function (buffer) {
+        blsong.setBuffer(buffer);
+        blsong.setLoop(false);
+        blsong.setVolume(0.1);
+      });
+
+      document.addEventListener("keypress", rotateSky, false);
+      let rotationZ = 0;
+      let isRotatingSky = false;
+      let isAnimationInProgress = false;
+
+      function rotateSky(event) {
+        const interactKey = "e";
+        const distance = camera.position.distanceTo(blanket.position);
+        const threshold = 4; // Adjust this value according to your needs
+
+        if (
+          event.key === interactKey &&
+          !isAnimationInProgress &&
+          distance < threshold
+        ) {
+          bgsong.pause();
+          blsong.play();
+          hideSidebar(); // hide menu during event
+          if (!isRotatingSky) {
+            isAnimationInProgress = true;
+            console.log("oi");
+            const targetRotationZ = rotationZ + Math.PI;
+            new TWEEN.Tween(skySphere.rotation)
+              .to({ x: targetRotationZ * 8 }, 20000)
+              .easing(TWEEN.Easing.Quadratic.Out)
+              .onComplete(() => {
+                isAnimationInProgress = false;
+                isRotatingSky = true;
+                blsong.stop();
+                bgsong.play();
+                toggleSidebar(); // show menu after event again
+              })
+              .start();
+            rotationZ = targetRotationZ;
+          } else {
+            isAnimationInProgress = true;
+            new TWEEN.Tween(skySphere.rotation)
+              .to({ x: rotationZ * 18 }, 20000)
+              .easing(TWEEN.Easing.Quadratic.Out)
+              .onComplete(() => {
+                isAnimationInProgress = false;
+                isRotatingSky = false;
+                blsong.stop();
+                bgsong.play();
+                toggleSidebar(); // show menu after event again
+              })
+              .start();
+          }
+        }
+      }
 
       // render the scene
       function animate() {
@@ -734,9 +801,6 @@
       }
 
       animate();
-      
     </script>
-
   </body>
-
 </html>

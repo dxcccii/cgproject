@@ -725,8 +725,8 @@
       // add blanket to scene
       scene.add(blanket);
 
-            // blanket sound
-            var blsong = new THREE.Audio(listener);
+      // blanket sound
+      var blsong = new THREE.Audio(listener);
       var audioLoader = new THREE.AudioLoader();
       audioLoader.load("./sounds/blanket song.mp3", function (buffer) {
         blsong.setBuffer(buffer);
@@ -735,54 +735,55 @@
       });
 
       document.addEventListener("keypress", rotateSky, false);
-let rotationZ = 0;
-let isRotatingSky = false;
-let isAnimationInProgress = false;
+      let rotationZ = 0;
+      let isRotatingSky = false;
+      let isAnimationInProgress = false;
 
-function rotateSky(event) {
-  const interactKey = "e";
-  const distance = camera.position.distanceTo(blanket.position);
-  const threshold = 4; // Adjust this value according to your needs
+      function rotateSky(event) {
+        const interactKey = "e";
+        const distance = camera.position.distanceTo(blanket.position);
+        const threshold = 4; // Adjust this value according to your needs
 
-  if (event.key === interactKey && !isAnimationInProgress && distance < threshold) {
-    bgsong.pause();
-    blsong.play();
-    hideSidebar(); // hide menu during event
-    if (!isRotatingSky) {
-      isAnimationInProgress = true;
-      console.log("oi");
-      const targetRotationZ = rotationZ + Math.PI;
-      new TWEEN.Tween(skySphere.rotation)
-        .to({ x: targetRotationZ * 8 }, 20000)
-        .easing(TWEEN.Easing.Quadratic.Out)
-        .onComplete(() => {
-          isAnimationInProgress = false;
-          isRotatingSky = true;
-          blsong.stop();
-          bgsong.play();
-          toggleSidebar(); // show menu after event again
-        })
-        .start();
-      rotationZ = targetRotationZ;
-    } else {
-      isAnimationInProgress = true;
-      new TWEEN.Tween(skySphere.rotation)
-        .to({ x: rotationZ * 18 }, 20000)
-        .easing(TWEEN.Easing.Quadratic.Out)
-        .onComplete(() => {
-          isAnimationInProgress = false;
-          isRotatingSky = false;
-          blsong.stop();
-          bgsong.play();
-          toggleSidebar(); // show menu after event again
-        })
-        .start();
-    }
-  }
-}
-
-
-
+        if (
+          event.key === interactKey &&
+          !isAnimationInProgress &&
+          distance < threshold
+        ) {
+          bgsong.pause();
+          blsong.play();
+          hideSidebar(); // hide menu during event
+          if (!isRotatingSky) {
+            isAnimationInProgress = true;
+            console.log("oi");
+            const targetRotationZ = rotationZ + Math.PI;
+            new TWEEN.Tween(skySphere.rotation)
+              .to({ x: targetRotationZ * 8 }, 20000)
+              .easing(TWEEN.Easing.Quadratic.Out)
+              .onComplete(() => {
+                isAnimationInProgress = false;
+                isRotatingSky = true;
+                blsong.stop();
+                bgsong.play();
+                toggleSidebar(); // show menu after event again
+              })
+              .start();
+            rotationZ = targetRotationZ;
+          } else {
+            isAnimationInProgress = true;
+            new TWEEN.Tween(skySphere.rotation)
+              .to({ x: rotationZ * 18 }, 20000)
+              .easing(TWEEN.Easing.Quadratic.Out)
+              .onComplete(() => {
+                isAnimationInProgress = false;
+                isRotatingSky = false;
+                blsong.stop();
+                bgsong.play();
+                toggleSidebar(); // show menu after event again
+              })
+              .start();
+          }
+        }
+      }
 
       // render the scene
       function animate() {
