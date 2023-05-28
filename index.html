@@ -12,6 +12,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three/examples/js/loaders/OBJLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three/examples/js/controls/PointerLockControls.js"></script>
     <script type="module">
       import TWEEN from "https://cdn.jsdelivr.net/npm/@tweenjs/tween.js@18.5.0/dist/tween.esm.js";
 
@@ -252,56 +253,13 @@
           movementTween = null;
         }
       }
+      // create pointer lock controls
+      const controls = new THREE.PointerLockControls(perspectiveCamera, document.body);
+      scene.add(controls.getObject());
 
-      //tilt and pan(in in the ass)
-      document.addEventListener("mousemove", (event) => {
-        const x = (event.clientX / window.innerWidth) * 2 - 1;
-        const y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-        //keep pan and tilt for perspective camera
-        if (camera == perspectiveCamera) {
-          // Calculate y rotation based on x movement
-          const panAngle = Math.PI / 8; // maximum pan angle
-          const maxPanAngle = panAngle;
-          const minPanAngle = -panAngle; // minimum pan angle
-          const xRotationRange = maxPanAngle - minPanAngle;
-          camera.rotation.y = x * xRotationRange + minPanAngle;
-
-          // Calculate x rotation based on y movement
-          const tiltAngle = Math.PI / 8; // maximum tilt angle
-          const maxYAngle = tiltAngle;
-          const minYAngle = -tiltAngle; // minimum tilt angle
-          const yRotationRange = maxYAngle - minYAngle;
-          camera.rotation.x = y * yRotationRange + minYAngle;
-        }
-        //limit pan and tilt for better view in orthographic camera
-        else if (camera == orthographicCamera) {
-          // calculate y rotation based on x movement
-          const panAngle = Math.PI / 16; // maximum pan angle
-          const maxPanAngle = panAngle * 2;
-          const minPanAngle = -panAngle * 2; // minimum pan angle
-          const xRotationRange = maxPanAngle - minPanAngle;
-          camera.rotation.y = x * xRotationRange + minPanAngle;
-
-          // calculate x rotation based on y movement
-          const tiltAngle = Math.PI / 16; // maximum tilt angle
-          const maxYAngle = tiltAngle;
-          const minYAngle = tiltAngle * 4; // minimum tilt angle
-          const yRotationRange = maxYAngle - minYAngle;
-          camera.rotation.x = y * yRotationRange + minYAngle;
-        }
-
-        // set camera up vector to (0, 1, 0) to keep it upright
-        camera.up.set(0, 1, 0);
-
-        // set camera's lookAt target to a point in front of the camera
-        const distance = 1; // distance to target
-        const lookAtTarget = new THREE.Vector3(
-          camera.position.x + distance * Math.sin(camera.rotation.y),
-          camera.position.y - distance * Math.sin(camera.rotation.x),
-          camera.position.z - distance * Math.cos(camera.rotation.y)
-        );
-        camera.lookAt(lookAtTarget);
+      // enable pointer lock on mouse click
+      document.addEventListener('click', function () {
+        controls.lock();
       });
 
       // jumping (off the cliff)
