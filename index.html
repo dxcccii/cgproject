@@ -13,6 +13,7 @@
     <script src="https://cdn.jsdelivr.net/npm/three/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three/examples/js/loaders/OBJLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three/examples/js/controls/PointerLockControls.js"></script>
+
     <script type="module">
       import TWEEN from "https://cdn.jsdelivr.net/npm/@tweenjs/tween.js@18.5.0/dist/tween.esm.js";
 
@@ -40,6 +41,8 @@
         0.1,
         1000
       );
+
+      // innit post processing
 
       //ortho camera
       const orthographicCamera = new THREE.OrthographicCamera();
@@ -658,6 +661,38 @@
 
       // add the soda pop to the scene
       scene.add(pop);
+      pop.position.z = -10;
+
+      // soda pop sfx
+      var drinking = new THREE.Audio(listener);
+      var audioLoader = new THREE.AudioLoader();
+      audioLoader.load("./sounds/drink.mp3", function (buffer) {
+        drinking.setBuffer(buffer);
+        drinking.setLoop(false);
+        drinking.setVolume(0.3);
+      });
+
+      //soda pop event
+
+      // Add event listener for key press
+      document.addEventListener("keypress", popcleanse, false);
+
+      // Handle the keypress
+      function popcleanse(event) {
+        var distance = pop.position.distanceTo(camera.position);
+
+        if (event.key === "e" && distance <= 6) {
+          // event has occurred
+          hideSidebar(); //hide controls
+          console.log("bitchy");
+          cry.stop();
+          drinking.play(); // play sfx
+          // add a delay of 2 seconds before changing the texture
+          setTimeout(function () {
+            toggleSidebar();
+          }, 2000); // Delay of 2 seconds
+        }
+      }
 
       var cameraCollisionPop = false; // flag to track camera collision
 
@@ -746,6 +781,8 @@
         blsong.setVolume(0.1);
       });
 
+      //blanket event
+
       document.addEventListener("keypress", rotateSky, false);
       let rotationZ = 0;
       let isRotatingSky = false;
@@ -831,6 +868,9 @@
               rotationZ = targetRotationZ;
             });
           }
+
+          // Add post processing effects
+        
         }
       }
 
@@ -875,13 +915,22 @@
         }
       );
 
-      // blanket sound
+      // computer sfx
       var csong = new THREE.Audio(listener);
       var audioLoader = new THREE.AudioLoader();
       audioLoader.load("./sounds/bsod.mp3", function (buffer) {
         csong.setBuffer(buffer);
         csong.setLoop(false);
-        csong.setVolume(0.2);
+        csong.setVolume(0.1);
+      });
+
+      // crying sfx
+      var cry = new THREE.Audio(listener);
+      var audioLoader = new THREE.AudioLoader();
+      audioLoader.load("./sounds/crying.mp3", function (buffer) {
+        cry.setBuffer(buffer);
+        cry.setLoop(true);
+        cry.setVolume(0.03);
       });
 
       //computer event
@@ -923,6 +972,7 @@
           //retunr controls
           setTimeout(function () {
             toggleSidebar();
+            cry.play();
           }, 7000); // Delay of 7 seconds (duration of sfx) to return controls
         }
       }
@@ -996,6 +1046,7 @@
 
         TWEEN.update();
         renderer.render(scene, camera);
+        composer.render();
       }
 
       animate();
