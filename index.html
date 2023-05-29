@@ -14,6 +14,7 @@
     <script src="https://cdn.jsdelivr.net/npm/three/examples/js/loaders/OBJLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three/examples/js/controls/PointerLockControls.js"></script>
 
+
     <script type="module">
       import TWEEN from "https://cdn.jsdelivr.net/npm/@tweenjs/tween.js@18.5.0/dist/tween.esm.js";
 
@@ -42,7 +43,11 @@
         1000
       );
 
-      // innit post processing
+      // innit post
+      //const composer = new EffectComposer(renderer);
+      // renderPass = new RenderPass(scene, camera);
+      //composer.addPass(renderPass);
+      //composer.addPass(godRaysEffect);
 
       //ortho camera
       const orthographicCamera = new THREE.OrthographicCamera();
@@ -869,8 +874,8 @@
             });
           }
 
-          // Add post processing effects
-        
+          //include post processing
+
         }
       }
 
@@ -1046,7 +1051,7 @@
 
         TWEEN.update();
         renderer.render(scene, camera);
-        composer.render();
+        //composer.render();
       }
 
       animate();
