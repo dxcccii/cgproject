@@ -254,11 +254,14 @@
         }
       }
       // create pointer lock controls
-      const controls = new THREE.PointerLockControls(perspectiveCamera, document.body);
+      const controls = new THREE.PointerLockControls(
+        perspectiveCamera,
+        document.body
+      );
       scene.add(controls.getObject());
 
       // enable pointer lock on mouse click
-      document.addEventListener('click', function () {
+      document.addEventListener("click", function () {
         controls.lock();
       });
 
@@ -656,6 +659,57 @@
       // add the soda pop to the scene
       scene.add(pop);
 
+      var cameraCollisionPop = false; // flag to track camera collision
+
+      // check for collision between the camera and pop
+      function checkCameraCollisionPop() {
+        var cameraPosition = camera.position;
+        var popPosition = pop.position;
+        var distance = cameraPosition.distanceTo(popPosition);
+
+        if (distance < 3) {
+          // collision detected
+          cameraCollisionPop = true;
+        }
+      }
+
+      // animate the camera's bounce-back motion
+      function animateCameraBouncePop() {
+        if (cameraCollisionPop) {
+          uhoh.play(); // play collision sfx
+          // calculate the approach position
+          var direction = new THREE.Vector3()
+            .subVectors(camera.position, pop.position)
+            .normalize();
+
+          // calculate the target position of bounce-back
+          var targetPosition = new THREE.Vector3(
+            camera.position.x,
+            camera.position.y,
+            camera.position.z
+          );
+          targetPosition.add(direction.multiplyScalar(4));
+
+          // use TWEEN to animate the bounce-back motion of x and z
+          new TWEEN.Tween(camera.position)
+            .to(targetPosition, 200) // set the duration of the animation
+            .easing(TWEEN.Easing.Back.Out) // use an easing function for the bounce effect
+            .onComplete(function () {
+              animateCameraYPosition();
+              cameraCollisionPop = false; // reset the camera collision flag
+            })
+            .start();
+        }
+      }
+
+      // use TWEEN to animate the bounce-back motion of y
+      function animateCameraYPositionPop() {
+        new TWEEN.Tween(camera.position)
+          .to({ y: 1 }, 200) // set the duration of the animation
+          .easing(TWEEN.Easing.Quadratic.InOut) // easing function for smoother motion
+          .start();
+      }
+
       // make blanket
       var blanketgeometry = new THREE.BoxGeometry(10, 0.5, 7); // Adjust the dimensions as desired
 
@@ -753,7 +807,9 @@
           grandfather.rotation.y += null;
         }
         checkCameraCollision();
+        checkCameraCollisionPop();
         animateCameraBounce();
+        animateCameraBouncePop();
         TWEEN.update();
         renderer.render(scene, camera);
       }
