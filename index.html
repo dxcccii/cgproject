@@ -885,49 +885,98 @@
       });
 
       //computer event
-      // Add event listener for the keydown event
+      // Add event listener for key press
       document.addEventListener("keypress", blueScreen, false);
 
-     // Set up a flag to track if the blue screen event has already occurred
-var blueScreenEventOccurred = false;
+      // Set up a flag to track if the blue screen event has already occurred
+      var blueScreenEventOccurred = false;
 
-// Handle the keydown event
-function blueScreen(event) {
-    var distance = computer.position.distanceTo(camera.position);
-    
-    if (event.key === 'e' && distance <= 13 && !blueScreenEventOccurred) {
-        // Set the flag to indicate that the blue screen event has occurred
-        blueScreenEventOccurred = true;
-        hideSidebar();
-        csong.play();
-        // Add a delay of 1 second before changing the texture
-        setTimeout(function() {
-            // Load the new texture
+      // Handle the keypress
+      function blueScreen(event) {
+        var distance = computer.position.distanceTo(camera.position);
+
+        if (event.key === "e" && distance <= 14 && !blueScreenEventOccurred) {
+          // event has occurred
+          blueScreenEventOccurred = true;
+          hideSidebar(); //hide controls
+          csong.play(); // play sfx
+          // add a delay of 1 second before changing the texture
+          setTimeout(function () {
+            // load new texture
             var textureLoader = new THREE.TextureLoader();
             textureLoader.load(
-                './models/computer/computer_texture_bsod.png',
-                function(texture) {
-                    // Create a new material with the loaded texture
-                    var material = new THREE.MeshBasicMaterial({ map: texture });
+              "./models/computer/computer_texture_bsod.png",
+              function (texture) {
+                // new material with the new texture
+                var material = new THREE.MeshBasicMaterial({ map: texture });
 
-                    // Apply the new material to the computer object
-                    computer.traverse(function(child) {
-                        if (child instanceof THREE.Mesh) {
-                            child.material = material;
-                        }
-                      
-                    });
-                }
+                // apply new texture
+                computer.traverse(function (child) {
+                  if (child instanceof THREE.Mesh) {
+                    child.material = material;
+                  }
+                });
+              }
             );
-            
-        }, 1500); // Delay of 1 second (1000 milliseconds)
-        
-        setTimeout(function() {
-          toggleSidebar();
-        }, 7000); // Delay of 1 second (1000 milliseconds)
-    }
-    
-}
+          }, 1500); // Delay of 1.5 second
+
+          //retunr controls
+          setTimeout(function () {
+            toggleSidebar();
+          }, 7000); // Delay of 7 seconds (duration of sfx) to return controls
+        }
+      }
+
+      var cameraCollisionPC = false; // flag to track camera collision
+
+      // check for collision between the camera and computer
+      function checkCameraCollisionPC() {
+        var cameraPosition = camera.position;
+        var pcPosition = computer.position;
+        var distance = cameraPosition.distanceTo(pcPosition);
+
+        if (distance < 12) {
+          // collision detected
+          cameraCollisionPC = true;
+        }
+      }
+
+      // animate the camera's bounce-back motion
+      function animateCameraBouncePC() {
+        if (cameraCollisionPC) {
+          uhoh.play(); // play collision sfx
+          // calculate the approach position
+          var direction = new THREE.Vector3()
+            .subVectors(camera.position, computer.position)
+            .normalize();
+
+          // calculate the target position of bounce-back
+          var targetPosition = new THREE.Vector3(
+            camera.position.x,
+            camera.position.y,
+            camera.position.z
+          );
+          targetPosition.add(direction.multiplyScalar(4));
+
+          // use TWEEN to animate the bounce-back motion of x and z
+          new TWEEN.Tween(camera.position)
+            .to(targetPosition, 200) // set the duration of the animation
+            .easing(TWEEN.Easing.Back.Out) // use an easing function for the bounce effect
+            .onComplete(function () {
+              animateCameraYPositionPC();
+              cameraCollisionPC = false; // reset the camera collision flag
+            })
+            .start();
+        }
+      }
+
+      // use TWEEN to animate the bounce-back motion of y
+      function animateCameraYPositionPC() {
+        new TWEEN.Tween(camera.position)
+          .to({ y: 1 }, 200) // set the duration of the animation
+          .easing(TWEEN.Easing.Quadratic.InOut) // easing function for smoother motion
+          .start();
+      }
 
       // render the scene
       function animate() {
@@ -942,6 +991,9 @@ function blueScreen(event) {
         checkCameraCollisionPop();
         animateCameraBounce();
         animateCameraBouncePop();
+        checkCameraCollisionPC();
+        animateCameraBouncePC();
+
         TWEEN.update();
         renderer.render(scene, camera);
       }
