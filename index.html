@@ -839,6 +839,96 @@
         event.stopPropagation();
       }
 
+      // add computer model
+      // Declare the computer variable
+      var computer;
+
+      // Load the model
+      var loader = new THREE.OBJLoader();
+      loader.load(
+        "./models/computer/desktop_shortwires.obj",
+        function (object) {
+          // Assign the loaded object to the computer variable
+          computer = object;
+
+          // Load the texture
+          var textureLoader = new THREE.TextureLoader();
+          textureLoader.load(
+            "./models/computer/computer_texture.png",
+            function (texture) {
+              // Create a material with the loaded texture
+              var material = new THREE.MeshBasicMaterial({ map: texture });
+
+              // Apply the texture to the computer
+              computer.traverse(function (child) {
+                if (child instanceof THREE.Mesh) {
+                  child.material = material;
+                }
+              });
+
+              // computer position
+              computer.scale.set(20, 20, 20); // Modify the scale values as needed
+              computer.position.set(20, 2.5, 0);
+              scene.add(computer);
+            }
+          );
+        }
+      );
+
+      // blanket sound
+      var csong = new THREE.Audio(listener);
+      var audioLoader = new THREE.AudioLoader();
+      audioLoader.load("./sounds/bsod.mp3", function (buffer) {
+        csong.setBuffer(buffer);
+        csong.setLoop(false);
+        csong.setVolume(0.2);
+      });
+
+      //computer event
+      // Add event listener for the keydown event
+      document.addEventListener("keypress", blueScreen, false);
+
+     // Set up a flag to track if the blue screen event has already occurred
+var blueScreenEventOccurred = false;
+
+// Handle the keydown event
+function blueScreen(event) {
+    var distance = computer.position.distanceTo(camera.position);
+    
+    if (event.key === 'e' && distance <= 13 && !blueScreenEventOccurred) {
+        // Set the flag to indicate that the blue screen event has occurred
+        blueScreenEventOccurred = true;
+        hideSidebar();
+        csong.play();
+        // Add a delay of 1 second before changing the texture
+        setTimeout(function() {
+            // Load the new texture
+            var textureLoader = new THREE.TextureLoader();
+            textureLoader.load(
+                './models/computer/computer_texture_bsod.png',
+                function(texture) {
+                    // Create a new material with the loaded texture
+                    var material = new THREE.MeshBasicMaterial({ map: texture });
+
+                    // Apply the new material to the computer object
+                    computer.traverse(function(child) {
+                        if (child instanceof THREE.Mesh) {
+                            child.material = material;
+                        }
+                      
+                    });
+                }
+            );
+            
+        }, 1500); // Delay of 1 second (1000 milliseconds)
+        
+        setTimeout(function() {
+          toggleSidebar();
+        }, 7000); // Delay of 1 second (1000 milliseconds)
+    }
+    
+}
+
       // render the scene
       function animate() {
         requestAnimationFrame(animate);
