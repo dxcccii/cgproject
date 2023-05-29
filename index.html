@@ -750,51 +750,93 @@
       let rotationZ = 0;
       let isRotatingSky = false;
       let isAnimationInProgress = false;
+      const minRotationX = (-10 * Math.PI) / 180; // -10 degrees in radians
+      const maxRotationX = (10 * Math.PI) / 180; // 10 degrees in radians
 
       function rotateSky(event) {
         const interactKey = "e";
         const distance = camera.position.distanceTo(blanket.position);
         const threshold = 4; // Adjust this value according to your needs
 
+        // Get the yaw (rotation around the y-axis)
+        const yaw = camera.rotation.y;
+
+        // Calculate the angle between the current rotation and facing forward (0 degrees)
+        const angleToForward = Math.abs(yaw) % (Math.PI * 2);
         if (
           event.key === interactKey &&
           !isAnimationInProgress &&
-          distance < threshold
+          distance < threshold &&
+          camera.rotation.y >= minRotationX &&
+          camera.rotation.y <= maxRotationX &&
+          angleToForward < Math.PI / 4 // Allow up to 45 degrees yaw deviation from facing forward
         ) {
+          // Stop keyboard, mouse inputs, and mouse movement
+          document.addEventListener("keydown", preventDefaultHandler, true);
+          document.addEventListener("mousedown", preventDefaultHandler, true);
+          document.addEventListener("mousemove", preventDefaultHandler, true);
+          console.log(camera.rotation);
           bgsong.pause();
           blsong.play();
           hideSidebar(); // hide menu during event
+
           if (!isRotatingSky) {
             isAnimationInProgress = true;
-            console.log("oi");
-            const targetRotationZ = rotationZ + Math.PI;
-            new TWEEN.Tween(skySphere.rotation)
-              .to({ x: targetRotationZ * 8 }, 20000)
+
+            // Tilt up animation
+            const tiltUpTween = new TWEEN.Tween(camera.rotation)
+              .to({ x: Math.PI / 3 }, 5000)
               .easing(TWEEN.Easing.Quadratic.Out)
-              .onComplete(() => {
-                isAnimationInProgress = false;
-                isRotatingSky = true;
-                blsong.stop();
-                bgsong.play();
-                toggleSidebar(); // show menu after event again
-              })
               .start();
-            rotationZ = targetRotationZ;
-          } else {
-            isAnimationInProgress = true;
-            new TWEEN.Tween(skySphere.rotation)
-              .to({ x: rotationZ * 18 }, 20000)
-              .easing(TWEEN.Easing.Quadratic.Out)
-              .onComplete(() => {
-                isAnimationInProgress = false;
-                isRotatingSky = false;
-                blsong.stop();
-                bgsong.play();
-                toggleSidebar(); // show menu after event again
-              })
-              .start();
+
+            tiltUpTween.onComplete(() => {
+              const targetRotationZ = rotationZ + Math.PI;
+
+              new TWEEN.Tween(skySphere.rotation)
+                .to({ x: targetRotationZ * 8 }, 20000)
+                .easing(TWEEN.Easing.Quadratic.Out)
+                .onComplete(() => {
+                  // Tilt back animation
+                  const tiltBackTween = new TWEEN.Tween(camera.rotation)
+                    .to({ x: 0 }, 1000)
+                    .easing(TWEEN.Easing.Quadratic.Out)
+                    .start();
+
+                  tiltBackTween.onComplete(() => {
+                    isAnimationInProgress = false;
+                    isRotatingSky = false;
+                    blsong.stop();
+                    bgsong.play();
+                    toggleSidebar(); // show menu after event again
+                    // Resume keyboard, mouse inputs, and mouse movement
+                    document.removeEventListener(
+                      "keydown",
+                      preventDefaultHandler,
+                      true
+                    );
+                    document.removeEventListener(
+                      "mousedown",
+                      preventDefaultHandler,
+                      true
+                    );
+                    document.removeEventListener(
+                      "mousemove",
+                      preventDefaultHandler,
+                      true
+                    );
+                  });
+                })
+                .start();
+
+              rotationZ = targetRotationZ;
+            });
           }
         }
+      }
+
+      function preventDefaultHandler(event) {
+        event.preventDefault();
+        event.stopPropagation();
       }
 
       // render the scene
