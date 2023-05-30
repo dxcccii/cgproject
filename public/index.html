@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">  
+    <div class="sidebar" id="sidebar">
+        <img src="Images/menu.gif" alt="Image description" />
+      </div>
+    <link rel="stylesheet" href="/css/clown.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            overflow: hidden;
+            margin: 0px;
+        }
+    </style>
+    
+    <script type="importmap">
+        {
+          "imports": {
+            "three": "./build/three.module.js",
+            "three/examples/jsm/controls/OrbitControls":"./jsm/controls/OrbitControls.js",
+            "three/examples/jsm/libs/stats.module":"./jsm/libs/stats.module.js",
+            "three/addons/": "./jsm/"
+          }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/lil-gui@0.17"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/20.0.0/tween.umd.js"></script>
+</head>
+
+<body>
+    <script type="module"> import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.18/+esm'; </script>
+    <script type="module" src="client.js"></script>
+</body>
+
+</html>
