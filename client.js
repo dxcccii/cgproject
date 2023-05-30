@@ -8,8 +8,9 @@ import { BloomPass } from 'three/addons/postprocessing/BloomPass.js';
 import { FilmPass } from 'three/addons/postprocessing/FilmPass.js';
 import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
 import TWEEN from '@tweenjs/tween.js'
-//import GUI from 'lil-gui';
+
 let renderer, composer;
+
 // show menu
 function toggleSidebar() {
   var sidebar = document.getElementById("sidebar");
@@ -25,7 +26,6 @@ function hideSidebar() {
 }
 
 // set up the scene, camera, and renderer
-
 renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -34,16 +34,16 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
 renderer.toneMapping = THREE.ReinhardToneMapping;
 document.body.appendChild(renderer.domElement);
-
 composer = new EffectComposer(renderer);
+
 const scene = new THREE.Scene();
+
 const perspectiveCamera = new THREE.PerspectiveCamera(
   75,
   window.innerWidth / window.innerHeight,
   0.1,
   1000
 );
-
 
 const orthographicCamera = new THREE.OrthographicCamera();
 
@@ -238,7 +238,6 @@ function updateMovementDirection() {
   }
 }
 
-
 // camera movement
 //DO NOT TOUCH
 function moveCamera() {
@@ -283,10 +282,10 @@ function stopMovement() {
     movementTween = null;
   }
 }
+
 const controls = new PointerLockControls(camera, document.body);
 
 // add event listener to show/hide a UI (e.g., the game's menu
-
 document.body.addEventListener('click', function () {
   controls.lock();
 });
@@ -334,6 +333,8 @@ function getKeyCode(direction) {
     return null;
   }
 }
+
+//ambient light
 const ambientLight = new THREE.AmbientLight(0.2);
 scene.add(ambientLight);
 
@@ -343,6 +344,7 @@ directionalLight.castShadow = true;
 directionalLight.position.set(-30, 10, 20);
 scene.add(directionalLight);
 
+//hemisphere light
 const hemisphereLight = new THREE.HemisphereLight(
   0xffc0cb,
   0xffc0cb,
@@ -378,6 +380,7 @@ const skyMaterial = new THREE.MeshBasicMaterial({
   side: THREE.BackSide,
 });
 
+// skysphere
 const skySphere = new THREE.Mesh(skyGeometry, skyMaterial);
 skySphere.material.side = THREE.BackSide;
 scene.add(skySphere);
@@ -650,7 +653,7 @@ const capmaterial = new THREE.MeshStandardMaterial({
   displacementScale: 0, // Adjust the strength of the displacement effect
 });
 
-// create the objects
+// create the objects that compose soda pop
 var cylinder1 = new THREE.Mesh(
   new THREE.CylinderGeometry(0.5, 0.5, 0.5, 32),
   capmaterial
@@ -672,7 +675,7 @@ var cone3 = new THREE.Mesh(
   popmaterial
 );
 
-// set positions and rotations for the objects
+// set positions, shadows and rotations for the objects
 cylinder1.position.y = 6.8;
 cylinder1.castShadow = true;
 cone3.position.y = 6;
@@ -706,12 +709,11 @@ audioLoader.load("./sounds/drink.mp3", function (buffer) {
   drinking.setVolume(0.3);
 });
 
-//soda pop event
-
-// Add event listener for key press
+// soda pop event
+// add event listener for key press
 document.addEventListener("keypress", popcleanse, false);
 
-// Handle the keypress
+// handle the keypress
 function popcleanse(event) {
   var distance = pop.position.distanceTo(camera.position);
 
