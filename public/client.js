@@ -4,8 +4,8 @@ import { PointerLockControls } from 'three/addons/controls/PointerLockControls.j
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { GlitchPass } from 'three/addons/postprocessing/GlitchPass.js';
-import { BloomPass} from 'three/addons/postprocessing/BloomPass.js';
-import { FilmPass} from 'three/addons/postprocessing/FilmPass.js';
+import { BloomPass } from 'three/addons/postprocessing/BloomPass.js';
+import { FilmPass } from 'three/addons/postprocessing/FilmPass.js';
 
 
 
@@ -121,10 +121,10 @@ const renderPass = new RenderPass(scene, camera);
 composer.addPass(renderPass);
 const glitchPass = new GlitchPass();
 //blurry
-const bloomPass = new BloomPass(    1,    // strength
-25,   // kernel size
-4,    // sigma ?
-256,  // blur render target resolution
+const bloomPass = new BloomPass(1,    // strength
+  25,   // kernel size
+  4,    // sigma ?
+  256,  // blur render target resolution
 );
 
 const filmPass = new FilmPass(
