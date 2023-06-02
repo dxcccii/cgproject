@@ -38,6 +38,7 @@ composer = new EffectComposer(renderer);
 
 const scene = new THREE.Scene();
 
+//prespective camera
 const perspectiveCamera = new THREE.PerspectiveCamera(
   75,
   window.innerWidth / window.innerHeight,
@@ -45,6 +46,7 @@ const perspectiveCamera = new THREE.PerspectiveCamera(
   1000
 );
 
+//declare ortho cam
 const orthographicCamera = new THREE.OrthographicCamera();
 
 // initial position of the orthographic camera
@@ -53,7 +55,7 @@ orthographicCamera.position.copy(perspectiveCamera.position);
 // ortho camera's minimum height
 const minHeight = 1;
 
-// calculate orthographic camera parameters based on perspective camera frustum
+// calculate orthographic camera parameters based on perspective camera frustum (position and range)
 function calculateOrthographicParameters(perspectiveCamera, minHeight) {
   const frustumHeight =
     2 *
@@ -119,7 +121,7 @@ document.addEventListener("keydown", function (event) {
   }
 });
 
-//camera position inside the skysphere
+// prespective camera position inside the skysphere
 camera.position.set(1, 1, 20);
 
 //post processing vars
@@ -709,6 +711,155 @@ audioLoader.load("./sounds/drink.mp3", function (buffer) {
   drinking.setVolume(0.3);
 });
 
+// soda pop lights (point lights)
+
+// light 1
+var shine1 = new THREE.PointLight(0xe62117, 100, 2, 20);
+shine1.position.set(7, 7.5, -10); // Update the position to be higher above the object
+shine1.rotation.x = Math.PI / 2; // Set the rotation to point upwards
+scene.add(shine1);
+
+// Create a sphere geometry for the light
+var lightGeometry = new THREE.SphereGeometry(0.1, 16, 16);
+
+// Create a material that emits light
+var lightMaterial = new THREE.MeshBasicMaterial({ color: 0xfffffff, emissive: 0xe62117 });
+
+// Increase the intensity and color of the material
+lightMaterial.emissiveIntensity = 1;
+lightMaterial.emissiveDistance = 2;
+lightMaterial.emissiveDecay = 200;
+lightMaterial.color.setHex(0xe62117);
+
+// Create a mesh with the light geometry and updated material
+var lightSphere1 = new THREE.Mesh(lightGeometry, lightMaterial);
+
+// Position the light sphere at the same position as the point light
+lightSphere1.position.copy(shine1.position);
+
+// Add the light sphere to the scene
+scene.add(lightSphere1);
+
+//shine 2
+var shine2 = new THREE.PointLight(0xe62117, 100, 2, 20);
+shine2.position.set(5, 5, -10); // Update the position to be higher above the object
+
+scene.add(shine2);
+
+// Create a sphere geometry for the light
+var lightGeometry = new THREE.SphereGeometry(0.1, 16, 16);
+
+// Create a material that emits light
+var lightMaterial = new THREE.MeshBasicMaterial({ color: 0xfffffff, emissive: 0xe62117 });
+
+// Increase the intensity and color of the material
+lightMaterial.emissiveIntensity = 1;
+lightMaterial.emissiveDistance = 2;
+lightMaterial.emissiveDecay = 200;
+lightMaterial.color.setHex(0xe62117);
+
+// Create a mesh with the light geometry and updated material
+var lightSphere2 = new THREE.Mesh(lightGeometry, lightMaterial);
+
+// Position the light sphere at the same position as the point light
+lightSphere2.position.copy(shine2.position);
+
+// Add the light sphere to the scene
+scene.add(lightSphere2);
+
+//light 3
+var shine3 = new THREE.PointLight(0xe62117, 100, 2, 20);
+shine3.position.set(9, 2, -10); // Update the position to be higher above the object
+scene.add(shine3);
+
+// Create a sphere geometry for the light
+var lightGeometry = new THREE.SphereGeometry(0.1, 16, 16);
+
+// Create a material that emits light
+var lightMaterial = new THREE.MeshBasicMaterial({ color: 0xfffffff, emissive: 0xe62117 });
+
+// Increase the intensity and color of the material
+lightMaterial.emissiveIntensity = 1;
+lightMaterial.emissiveDistance = 2;
+lightMaterial.emissiveDecay = 200;
+lightMaterial.color.setHex(0xe62117);
+
+// Create a mesh with the light geometry and updated material
+var lightSphere3 = new THREE.Mesh(lightGeometry, lightMaterial);
+
+// Position the light sphere at the same position as the point light
+lightSphere3.position.copy(shine3.position);
+
+// Add the light sphere to the scene
+scene.add(lightSphere3);
+
+//light 4
+var shine4 = new THREE.PointLight(0xe62117, 100, 2, 20);
+shine4.position.set(7, 3, -8.5); // Update the position to be higher above the object
+shine4.rotation.x = Math.PI / 2; // Set the rotation to point upwards
+scene.add(shine4);
+
+// Create a sphere geometry for the light
+var lightGeometry = new THREE.SphereGeometry(0.1, 16, 16);
+
+// Create a material that emits light
+var lightMaterial = new THREE.MeshBasicMaterial({ color: 0xfffffff, emissive: 0xe62117 });
+
+// Increase the intensity and color of the material
+lightMaterial.emissiveIntensity = 1;
+lightMaterial.emissiveDistance = 2;
+lightMaterial.emissiveDecay = 200;
+lightMaterial.color.setHex(0xe62117);
+
+// Create a mesh with the light geometry and updated material
+var lightSphere4 = new THREE.Mesh(lightGeometry, lightMaterial);
+
+// Position the light sphere at the same position as the point light
+lightSphere4.position.copy(shine4.position);
+
+// Add the light sphere to the scene
+scene.add(lightSphere4);
+
+//light 5
+var shine5 = new THREE.PointLight(0xe62117, 1, 2, 20);
+shine5.position.set(7, 6.5, -11); // Update the position to be higher above the object
+shine5.rotation.x = Math.PI / 2; // Set the rotation to point upwards
+scene.add(shine5);
+
+// Create a sphere geometry for the light
+var lightGeometry = new THREE.SphereGeometry(0.1, 16, 16);
+
+// Create a material that emits light
+var lightMaterial = new THREE.MeshBasicMaterial({ color: 0xfffffff, emissive: 0xe62117 });
+
+// Increase the intensity and color of the material
+lightMaterial.emissiveIntensity = 1;
+lightMaterial.emissiveDistance = 2;
+lightMaterial.emissiveDecay = 200;
+lightMaterial.color.setHex(0xe62117);
+
+// Create a mesh with the light geometry and updated material
+var lightSphere5 = new THREE.Mesh(lightGeometry, lightMaterial);
+
+// Position the light sphere at the same position as the point light
+lightSphere5.position.copy(shine5.position);
+
+// Add the light sphere to the scene
+scene.add(lightSphere5);
+
+//initial intencitY
+lightSphere1.intensity = 0;
+shine1.intensity = 0;
+lightSphere2.intensity = 0;
+shine2.intensity = 0;
+lightSphere3.intensity = 0;
+shine3.intensity = 0;
+lightSphere4.intensity = 0;
+shine4.intensity = 0;
+lightSphere5.intensity = 0;
+shine5.intensity = 0;
+
+
 // soda pop event
 // add event listener for key press
 document.addEventListener("keypress", popcleanse, false);
@@ -728,11 +879,33 @@ function popcleanse(event) {
     composer.removePass(filmPass);
     composer.addPass(renderPass);
     composer.addPass(bokehPass);
-    //blurr
+    //event intencitY
+    hemisphereLight.intensity = 0;
+    lightSphere1.intensity = 1;
+    shine1.intensity = 1;
+    lightSphere2.intensity = 1;
+    shine2.intensity = 1;
+    lightSphere3.intensity = 1;
+    shine3.intensity = 1;
+    lightSphere4.intensity = 1;
+    shine4.intensity = 1;
+    lightSphere5.intensity = 1;
+    shine5.intensity = 1;
     drinking.play(); // play sfx
-    // add a delay of 2 seconds before changing the texture
+    // add a delay of 2 seconds 
     setTimeout(function () {
       toggleSidebar();
+      hemisphereLight.intensity = 1;
+      lightSphere1.intensity = 0;
+      shine1.intensity = 0;
+      lightSphere2.intensity = 0;
+      shine2.intensity = 0;
+      lightSphere3.intensity = 0;
+      shine3.intensity = 0;
+      lightSphere4.intensity = 0;
+      shine4.intensity = 0;
+      lightSphere5.intensity = 0;
+      shine5.intensity = 0;
     }, 2000); // Delay of 2 seconds
   }
 }
