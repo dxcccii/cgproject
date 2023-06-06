@@ -51,5 +51,9 @@ body {
   transition: opacity 0.3s ease-in-out; /* Add transition for smooth animation */
 }
 
+.end img{
+  height:900px;
+}
+
 .end-fade{
   opacity: 1; /* Set opacity to 1 for fade in effect */}

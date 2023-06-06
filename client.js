@@ -382,7 +382,7 @@ const spotLight = new THREE.SpotLight(
 spotLight.position.set(0, 7, 0);
 
 //where the spotlight is pointing at
-const targetPosition = new THREE.Vector3(0, 0, 0);
+const targetPosition = new THREE.Vector3(0, 0, 8);
 spotLight.target.position.copy(targetPosition);
 
 //skysphere
@@ -491,6 +491,7 @@ grandfather.add(cone);
 
 // rotate grandfather model to make it face the camera in the initial position
 grandfather.rotation.y = -Math.PI / 2;
+grandfather.position.z = 8;
 
 // create a listener
 var listener = new THREE.AudioListener();
@@ -1146,8 +1147,9 @@ loader.load(
         // computer position
         computer.scale.set(20, 20, 20); // Modify the scale values as needed
         PC.add(computer);
-        PC.position.x = 25;
+        PC.position.x = 30;
         PC.position.y = 2.5;
+        PC.position.z = -10;
         scene.add(PC);
       }
     );
