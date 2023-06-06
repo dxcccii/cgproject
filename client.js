@@ -47,16 +47,14 @@ var aspectRatio = width / height;
 var cameraWidth = 700; // Adjust this value to control the visible width of the scene
 var cameraHeight = cameraWidth / aspectRatio;
 var orthographicCamera = new THREE.OrthographicCamera(
-  cameraWidth / -20,
-  cameraWidth / 20,
-  cameraHeight / 20,
-  cameraHeight / -20,
+  cameraWidth / -22,
+  cameraWidth / 22,
+  cameraHeight / 22,
+  cameraHeight / -22,
   -500,
   1000
 );
 
-orthographicCamera.position.set(0, 3, 3);
-orthographicCamera.rotation.y = Math.PI / 4;
 
 // Set the default camera to perspective camera
 let camera = perspectiveCamera;
@@ -72,6 +70,9 @@ function toggleCamera() {
    // Set position from perspective camera
     console.log(camera)
     camera = orthographicCamera;
+    orthographicCamera.position.set(0, 7, 3);
+orthographicCamera.rotation.y = Math.PI / 8;
+orthographicCamera.rotation.z = Math.PI / 2;
     camera.lookAt(grandfather.position);
     movementSpeed = 30;
     composer.removePass(renderPass);
@@ -81,7 +82,7 @@ function toggleCamera() {
     controls.maxPolarAngle = Math.PI
     controls.minPolarAngle = Math.PI/1.9
     controls.lock();
-    stopMovement(); // Stop camera movement when switching to orthographic camera
+    moveCamera();
   } else {
     // Switch to perspective camera
     camera = perspectiveCamera;
@@ -215,9 +216,15 @@ function updateMovementDirection() {
       .applyQuaternion(rotationQuaternion)
       .normalize();
     const nextPosition = camera.position.clone().add(movementDirection);
-    if (nextPosition.y >= 1 || nextPosition.y <= 1) {
+    console.log(nextPosition)
+    if (nextPosition.y >= 1 && camera === perspectiveCamera || nextPosition.y <= 1 && camera === perspectiveCamera ) {
+      console.log(camera)
       movementDirection.y -= nextPosition.y - 1; // adjust y to stay below y=1
-    }
+  }
+  else if (camera === orthographicCamera && nextPosition.y >= 7 ||camera === orthographicCamera && nextPosition.y <= 7 ) {
+    movementDirection.y -= nextPosition.y + 7  ; // 
+    console.log(nextPosition.y)
+  }
   } else {
     movementDirection = null;
   }
@@ -226,10 +233,6 @@ function updateMovementDirection() {
 // camera movement
 //DO NOT TOUCH
 function moveCamera() {
-  if (camera === orthographicCamera) {
-    // Stop camera movement in orthographic mode
-    return;
-  }
   if (movementDirection) {
     const distance = movementDirection
       .clone()
@@ -1204,7 +1207,7 @@ function checkCameraCollisionPC() {
   var pcPosition = PC.position;
   var distance = cameraPosition.distanceTo(pcPosition);
 
-  if (distance < 12) {
+  if (distance < 10) {
     // collision detected
     cameraCollisionPC = true;
   }
