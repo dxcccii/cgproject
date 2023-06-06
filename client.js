@@ -38,83 +38,53 @@ composer = new EffectComposer(renderer);
 
 const scene = new THREE.Scene();
 
-//prespective camera
-const perspectiveCamera = new THREE.PerspectiveCamera(
-  75,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000
+// Perspective camera
+const perspectiveCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+const orthographicCamera = new THREE.OrthographicCamera(
+  window.innerWidth / -20,   // left
+  window.innerWidth / 20,    // right
+  window.innerHeight / 20,   // top
+  window.innerHeight / -20,  // bottom
+  1,                        // near
+  1000                      // far
 );
 
-//declare ortho cam
-const orthographicCamera = new THREE.OrthographicCamera();
-
-// initial position of the orthographic camera
-orthographicCamera.position.copy(perspectiveCamera.position);
-
-// ortho camera's minimum height
-const minHeight = 1;
-
-// calculate orthographic camera parameters based on perspective camera frustum (position and range)
-function calculateOrthographicParameters(perspectiveCamera, minHeight) {
-  const frustumHeight =
-    2 *
-    Math.tan(THREE.MathUtils.degToRad(perspectiveCamera.fov) / 2) *
-    perspectiveCamera.position.z;
-  const frustumWidth = frustumHeight * perspectiveCamera.aspect;
-
-  const orthoHeight = frustumHeight * 1.5; // increase the height by a factor of 1.5
-
-  const cameraBottom = orthographicCamera.position.y - orthoHeight / 2;
-
-  // adjust the camera position if it falls below the floor
-  if (cameraBottom < minHeight) {
-    orthographicCamera.position.y += minHeight - cameraBottom;
-  }
-
-  return {
-    left: -frustumWidth / 2,
-    right: frustumWidth / 2,
-    top: orthographicCamera.position.y + orthoHeight / 2,
-    bottom: orthographicCamera.position.y - orthoHeight / 2,
-    near: orthographicCamera.near,
-    far: orthographicCamera.far,
-  };
-}
-
-// perspective camera as default
+// Set the default camera to perspective camera
 let camera = perspectiveCamera;
 
-// define the camera movement speed
-var movementSpeed = 7; // units per second
+var controls = new PointerLockControls(camera, document.body);
+// Define the camera movement speed
+let movementSpeed = 7; // units per second
 
-// toggle between perspective and orthographic camera
+// Toggle between perspective and orthographic camera
 function toggleCamera() {
   if (camera === perspectiveCamera) {
-    // switch to orthographic camera
-    const orthoParams = calculateOrthographicParameters(
-      perspectiveCamera,
-      minHeight
-    );
-    orthographicCamera.left = orthoParams.left;
-    orthographicCamera.right = orthoParams.right;
-    orthographicCamera.top = orthoParams.top;
-    orthographicCamera.bottom = orthoParams.bottom;
-    orthographicCamera.near = orthoParams.near;
-    orthographicCamera.far = orthoParams.far;
-    orthographicCamera.updateProjectionMatrix();
+    // Switch to orthographic camera
+    orthographicCamera.position.copy(perspectiveCamera.position); // Set position from perspective camera
+
     camera = orthographicCamera;
-    camera.position.copy(perspectiveCamera.position);
     movementSpeed = 30;
+    composer.removePass(renderPass);
+    renderPass = new RenderPass(scene, camera);
+    composer.addPass(renderPass);
+    controls = new PointerLockControls(camera, document.body);
+    controls.lock();
+    stopMovement(); // Stop camera movement when switching to orthographic camera
   } else {
-    // switch to perspective camera
-    movementSpeed = 7;
+    // Switch to perspective camera
     camera = perspectiveCamera;
-    camera.position.copy(orthographicCamera.position);
+    movementSpeed = 7;
+    composer.removePass(renderPass);
+    renderPass = new RenderPass(scene, camera);
+    composer.addPass(renderPass);
+    controls = new PointerLockControls(camera, document.body);
+    controls.lock();
+    moveCamera(); // Resume camera movement when switching back to perspective camera
   }
 }
 
-// register keydown event listener to toggle orthographic camera
+// Register keydown event listener to toggle orthographic camera
 document.addEventListener("keydown", function (event) {
   if (event.key === "q") {
     toggleCamera();
@@ -125,7 +95,8 @@ document.addEventListener("keydown", function (event) {
 camera.position.set(1, 1, 20);
 
 //post processing vars
-const renderPass = new RenderPass(scene, camera);
+var renderPass = new RenderPass(scene, camera);
+console.log(renderPass)
 composer.addPass(renderPass);
 const glitchPass = new GlitchPass();
 
@@ -172,7 +143,8 @@ let jumpStart = null; // starting height of the jump
 let movementDirection = null;
 let movementTween = null;
 
-//event listeners to for movement and jumping
+  console.log(camera)
+  //event listeners to for movement and jumping
 document.addEventListener("keydown", (event) => {
   if (isJumping) {
     return;
@@ -243,6 +215,10 @@ function updateMovementDirection() {
 // camera movement
 //DO NOT TOUCH
 function moveCamera() {
+  if (camera === orthographicCamera) {
+    // Stop camera movement in orthographic mode
+    return;
+  }
   if (movementDirection) {
     const distance = movementDirection
       .clone()
@@ -285,7 +261,7 @@ function stopMovement() {
   }
 }
 
-const controls = new PointerLockControls(camera, document.body);
+
 
 // add event listener to show/hide a UI (e.g., the game's menu
 document.body.addEventListener('click', function () {
@@ -320,6 +296,8 @@ function jump() {
     })
     .start();
 }
+
+
 
 // store direction (for science, trust me, i wont give it to NSA)
 function getKeyCode(direction) {
@@ -1275,7 +1253,7 @@ function animate() {
 
   TWEEN.update();
 
-  composer.render();
+  composer.render(1/60);
 
 }
 
