@@ -1391,7 +1391,7 @@ coiso.load('./models/bed/Bed.fbx',
 (end) => {
 
   // bed position
-  end.scale.set(0.1, 0.1, 0.1); // Modify the scale values as needed
+  end.scale.set(0.05, 0.05, 0.05); // Modify the scale values as needed
   bed.add(end);
   bed.position.x = 30;
   bed.position.y = 0;
@@ -1408,18 +1408,21 @@ audioLoader.load("./sounds/uboa.mp3", function (buffer) {
   uboa.setVolume(0.05);
 });
 
-//fade to black function
-function toggleFade() {
-  var element = document.querySelector('.end');
-  element.classList.toggle('.wfade-in');
-}
+// ending sfx
+var home = new THREE.Audio(listener);
+var audioLoader = new THREE.AudioLoader();
+audioLoader.load("./sounds/home.mp3", function (buffer) {
+  home.setBuffer(buffer);
+  home.setLoop(false);
+  home.setVolume(0.1);
+});
 
 // Add event listener for key press
 document.addEventListener("keydown", function (event) {
   var distance = bed.position.distanceTo(camera.position);
   if (event.key === "e" && distance <= 7) {
     bgsong.pause();
-    uboa.play();
+    home.play();
     ending();
   }
 });
