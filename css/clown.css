@@ -18,10 +18,25 @@ body {
   height: auto;
 }
 
-.show-sidebar {
-  transform: translateX(0px); /* Slide the sidebar into view */
+.show-blocks {
+  transform: translateY(0px); /* Slide the sidebar into view */
 }
 
-.hide-sidebar {
-  transform: translateX(250px); /* Slide the sidebar into view */
+.hide-blocks {
+  transform: translateY(-700px); /* Slide the sidebar into view */
+}
+
+.blocks {
+  position: fixed;
+  bottom:-550px;
+  /* Start with sidebar hidden */
+  width: 100%;
+  height: auto;
+  padding-bottom: -20px;
+  transition: transform 0.3s ease-in-out; /* Add transition for smooth animation */
+}
+
+.blocks img {
+  width:100%;
+  height: auto;
 }

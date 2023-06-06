@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -23,6 +24,21 @@ function hideSidebar() {
   var sidebar = document.getElementById("sidebar");
   sidebar.classList.toggle("hide-sidebar");
   sidebar.classList.remove("show-sidebar");
+}
+
+//toggles for the blocks
+// show blocks jumpscare
+function toggleBlocks() {
+  var sidebar = document.getElementById("blocks");
+  sidebar.classList.remove("show-blocks");
+  sidebar.classList.toggle("hide-blocks");
+}
+
+// hide blocks jumpscare
+function hideBlocks() {
+  var sidebar = document.getElementById("blocks");
+  sidebar.classList.remove("hide-blocks");
+  sidebar.classList.toggle("show-blocks");
 }
 
 // set up the scene, camera, and renderer
@@ -1250,6 +1266,115 @@ function animateCameraYPositionPC() {
     .start();
 }
 
+// add blocks model
+// Declare the computer variable
+
+var block = new THREE.Group();
+
+const fbxLoader = new FBXLoader()
+
+fbxLoader.load('./models/blocks/blocks.fbx',
+(blocks) => {
+  // blocks position
+  blocks.scale.set(0.01, 0.01, 0.01); // Modify the scale values as needed
+  block.add(blocks);
+  block.position.x = -20;
+  block.position.y = 0;
+  block.position.z = -25;
+  scene.add(block);
+});
+
+//blocks event
+
+// blocks sfx
+// crying sfx
+var uboa = new THREE.Audio(listener);
+var audioLoader = new THREE.AudioLoader();
+audioLoader.load("./sounds/uboa.mp3", function (buffer) {
+  uboa.setBuffer(buffer);
+  uboa.setLoop(true);
+  uboa.setVolume(0.05);
+});
+
+// Add event listener for key press
+var isShowing = false;
+document.addEventListener("keydown", function (event) {
+  var distance = block.position.distanceTo(camera.position);
+  if (event.key === "e" && distance <= 3 && !isShowing) {
+    hideSidebar(); // hide menu during event
+    toggleBlocks();
+    bgsong.pause();
+    isShowing = true;
+    uboa.play();
+    ambientLight.intensity = 0;
+    hemisphereLight.intensity = 0;
+    directionalLight.intensity = 0;
+  } else if (event.key === "e" && distance <= 3 && isShowing) {
+    isShowing = false;
+    uboa.stop(); // stop the sound when the animation is over
+    bgsong.play(); // resume bg song
+    toggleSidebar(); // show menu after event again
+    hideBlocks();
+    ambientLight.intensity = 0.2;
+    hemisphereLight.intensity = 1;
+    directionalLight.intensity = 2;
+  } else if ( distance > 3 && isShowing) {
+    isShowing = false;
+    uboa.stop(); // stop the sound when the animation is over
+    bgsong.play(); // resume bg song
+    toggleSidebar(); // show menu after event again
+    hideBlocks();
+    ambientLight.intensity = 0.2;
+    hemisphereLight.intensity = 1;
+    directionalLight.intensity = 2;
+  };
+});
+
+//blocks collision
+var cameraCollisionBlocks = false; // flag to track camera collision
+
+// check for collision between the camera and computer
+function checkCameraCollisionBlocks() {
+  var cameraPosition = camera.position;
+  var blocksPosition = block.position;
+  var distance = cameraPosition.distanceTo(blocksPosition);
+
+  if (distance < 2) {
+    // collision detected
+    cameraCollisionBlocks = true;
+  }
+}
+
+// animate the camera's bounce-back motion
+function animateCameraBounceBlocks() {
+  if (cameraCollisionBlocks) {
+    uhoh.play(); // play collision sfx
+    // calculate the approach position
+    var direction = new THREE.Vector3()
+      .subVectors(camera.position, block.position)
+      .normalize();
+
+    // calculate the target position of bounce-back
+    var targetPosition = new THREE.Vector3(
+      camera.position.x,
+      camera.position.y,
+      camera.position.z
+    );
+    targetPosition.add(direction.multiplyScalar(4));
+
+    // use TWEEN to animate the bounce-back motion of x and z
+    new TWEEN.Tween(camera.position)
+      .to(targetPosition, 200) // set the duration of the animation
+      .easing(TWEEN.Easing.Back.Out) // use an easing function for the bounce effect
+      .onComplete(function () {
+        animateCameraYPosition();
+        cameraCollisionBlocks = false; // reset the camera collision flag
+      })
+      .start();
+  }
+}
+
+
 // render the scene
 function animate() {
   requestAnimationFrame(animate);
@@ -1264,6 +1389,8 @@ function animate() {
   animateCameraBouncePop();
   checkCameraCollisionPC();
   animateCameraBouncePC();
+  checkCameraCollisionBlocks();
+  animateCameraBounceBlocks();
 
   TWEEN.update();
 
