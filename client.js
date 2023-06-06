@@ -41,14 +41,22 @@ const scene = new THREE.Scene();
 // Perspective camera
 const perspectiveCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-const orthographicCamera = new THREE.OrthographicCamera(
-  window.innerWidth / -20,   // left
-  window.innerWidth / 20,    // right
-  window.innerHeight / 20,   // top
-  window.innerHeight / -20,  // bottom
-  1,                        // near
-  1000                      // far
+var width = window.innerWidth;
+var height = window.innerHeight;
+var aspectRatio = width / height;
+var cameraWidth = 700; // Adjust this value to control the visible width of the scene
+var cameraHeight = cameraWidth / aspectRatio;
+var orthographicCamera = new THREE.OrthographicCamera(
+  cameraWidth / -20,
+  cameraWidth / 20,
+  cameraHeight / 20,
+  cameraHeight / -20,
+  -500,
+  1000
 );
+
+orthographicCamera.position.set(0, 3, 3);
+orthographicCamera.rotation.y = Math.PI / 4;
 
 // Set the default camera to perspective camera
 let camera = perspectiveCamera;
@@ -61,14 +69,17 @@ let movementSpeed = 7; // units per second
 function toggleCamera() {
   if (camera === perspectiveCamera) {
     // Switch to orthographic camera
-    orthographicCamera.position.copy(perspectiveCamera.position); // Set position from perspective camera
-
+   // Set position from perspective camera
+    console.log(camera)
     camera = orthographicCamera;
+    camera.lookAt(grandfather.position);
     movementSpeed = 30;
     composer.removePass(renderPass);
     renderPass = new RenderPass(scene, camera);
     composer.addPass(renderPass);
     controls = new PointerLockControls(camera, document.body);
+    controls.maxPolarAngle = Math.PI
+    controls.minPolarAngle = Math.PI/1.9
     controls.lock();
     stopMovement(); // Stop camera movement when switching to orthographic camera
   } else {
