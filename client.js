@@ -1,3 +1,6 @@
+//-----------------------------------------------------------------------------------------------
+// imports
+//-----------------------------------------------------------------------------------------------
 import * as THREE from 'three';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
@@ -10,35 +13,42 @@ import { FilmPass } from 'three/addons/postprocessing/FilmPass.js';
 import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
 import TWEEN from '@tweenjs/tween.js'
 
+//-----------------------------------------------------------------------------------------------
+// declare renderer and composer
+//-----------------------------------------------------------------------------------------------
 let renderer, composer;
 
-// show menu
+//-----------------------------------------------------------------------------------------------
+// html and css events
+//-----------------------------------------------------------------------------------------------
+
+// show controls
 function toggleSidebar() {
   var sidebar = document.getElementById("sidebar");
   sidebar.classList.toggle("show-sidebar");
   sidebar.classList.remove("hide-sidebar");
 }
 
-// hide menu
+// hide controls
 function hideSidebar() {
   var sidebar = document.getElementById("sidebar");
   sidebar.classList.toggle("hide-sidebar");
   sidebar.classList.remove("show-sidebar");
 }
 
-//toggles for the blocks
+// toggles for the blocks
 // show blocks jumpscare
 function toggleBlocks() {
-  var sidebar = document.getElementById("blocks");
-  sidebar.classList.remove("show-blocks");
-  sidebar.classList.toggle("hide-blocks");
+  var blocksevent = document.getElementById("blocks");
+  blocksevent.classList.remove("show-blocks");
+  blocksevent.classList.toggle("hide-blocks");
 }
 
 // hide blocks jumpscare
 function hideBlocks() {
-  var sidebar = document.getElementById("blocks");
-  sidebar.classList.remove("hide-blocks");
-  sidebar.classList.toggle("show-blocks");
+  var blocksevent = document.getElementById("blocks");
+  blocksevent.classList.remove("hide-blocks");
+  blocksevent.classList.toggle("show-blocks");
 }
 
 // end
@@ -46,8 +56,9 @@ function ending() {
   var ending = document.getElementById("end");
   ending.classList.toggle("end-fade");
 }
-
-// set up the scene, camera, and renderer
+//-----------------------------------------------------------------------------------------------
+// set up the scene, camera, renderer and composer
+//-----------------------------------------------------------------------------------------------
 renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -59,14 +70,14 @@ document.body.appendChild(renderer.domElement);
 composer = new EffectComposer(renderer);
 
 const scene = new THREE.Scene();
-
+//-----------------------------------------------------------------------------------------------
 // Perspective camera
+//-----------------------------------------------------------------------------------------------
 const perspectiveCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-
 var width = window.innerWidth;
 var height = window.innerHeight;
 var aspectRatio = width / height;
-var cameraWidth = 700; // Adjust this value to control the visible width of the scene
+var cameraWidth = 700;
 var cameraHeight = cameraWidth / aspectRatio;
 var orthographicCamera = new THREE.OrthographicCamera(
   cameraWidth / -22,
@@ -76,84 +87,88 @@ var orthographicCamera = new THREE.OrthographicCamera(
   -500,
   1000
 );
-
+// Define the camera movement speed
+let movementSpeed = 7; // units per second
 
 // Set the default camera to perspective camera
 let camera = perspectiveCamera;
 
-var controls = new PointerLockControls(camera, document.body);
-// Define the camera movement speed
-let movementSpeed = 7; // units per second
+// prespective camera position inside the skysphere
+camera.position.set(1, 1, 20);
 
-// Toggle between perspective and orthographic camera
+//-----------------------------------------------------------------------------------------------
+//pointer controls for mouse interaction
+//-----------------------------------------------------------------------------------------------
+var controls = new PointerLockControls(camera, document.body);
+
+//-----------------------------------------------------------------------------------------------
+// function that toggle between perspective and orthographic camera and sets it up
+//-----------------------------------------------------------------------------------------------
 function toggleCamera() {
   if (camera === perspectiveCamera) {
-    // Switch to orthographic camera
-   // Set position from perspective camera
+    // Switch to orthographic camera if "Q" is pressed
     console.log(camera)
+    // orthographic camera starting position
     camera = orthographicCamera;
     orthographicCamera.position.set(0, 7, 3);
-orthographicCamera.rotation.y = Math.PI / 8;
-orthographicCamera.rotation.z = Math.PI / 2;
+    orthographicCamera.rotation.y = Math.PI / 8; 
+    orthographicCamera.rotation.z = Math.PI / 2; 
     camera.lookAt(grandfather.position);
-    movementSpeed = 30;
+    // faster movement speed
+    movementSpeed = 30; 
+    // pass new camera to composer
     composer.removePass(renderPass);
     renderPass = new RenderPass(scene, camera);
     composer.addPass(renderPass);
+    // pointer controls during othographic view
     controls = new PointerLockControls(camera, document.body);
     controls.maxPolarAngle = Math.PI
-    controls.minPolarAngle = Math.PI/1.9
+    controls.minPolarAngle = Math.PI / 1.9
     controls.lock();
+    // allow movement during orthographic view
     moveCamera();
   } else {
-    // Switch to perspective camera
+    // Switch to perspective camera when "Q" is pressed again
     camera = perspectiveCamera;
     movementSpeed = 7;
+    // pass new view to composer
     composer.removePass(renderPass);
     renderPass = new RenderPass(scene, camera);
     composer.addPass(renderPass);
+    // same controls as before
     controls = new PointerLockControls(camera, document.body);
     controls.lock();
-    moveCamera(); // Resume camera movement when switching back to perspective camera
+    moveCamera();
   }
 }
 
-// Register keydown event listener to toggle orthographic camera
+// keydown event listener to toggle orthographic camera
 document.addEventListener("keydown", function (event) {
   if (event.key === "q") {
     toggleCamera();
   }
 });
 
-// prespective camera position inside the skysphere
-camera.position.set(1, 1, 20);
+//-----------------------------------------------------------------------------------------------
+// post processing effects
+//-----------------------------------------------------------------------------------------------
 
-//post processing vars
+// pass to composer
 var renderPass = new RenderPass(scene, camera);
 console.log(renderPass)
 composer.addPass(renderPass);
+
+// glitch pass
 const glitchPass = new GlitchPass();
 
+// depth of field pass
 const bokehPass = new BokehPass(scene, camera, {
   focus: 1,
   aperture: 0.0002,
   maxblur: 0.01
 });
-//blurry
-const bloomPass = new BloomPass(1,    // strength
-  25,   // kernel size
-  4,    // sigma ?
-  256,  // blur render target resolution
-);
 
-
-const filmPass = new FilmPass(
-  0.035,   // noise intensity
-  0.025,  // scanline intensity
-  648,    // scanline count
-  false,  // grayscale
-);
-
+//maintain depth of fied affect from the beginning
 composer.addPass(bokehPass)
 //possible movement directions
 const directions = {
@@ -163,22 +178,41 @@ const directions = {
   KeyD: new THREE.Vector3(1, 0, 0),
 };
 
+// compose two effect for blurry effect
+const bloomPass = new BloomPass(1,    // strength
+  25,   // kernel size
+  4,    // sigma ?
+  256,  // blur render target resolution
+);
+
+const filmPass = new FilmPass(
+  0.035,   // noise intensity
+  0.025,  // scanline intensity
+  648,    // scanline count
+  false,  // grayscale
+);
+
+//-----------------------------------------------------------------------------------------------
+// movement
+//-----------------------------------------------------------------------------------------------
+
 // keep track of the pressed keys
 const pressedKeys = {};
 
 //set up jump animation variables
 const gravity = 0.01;
-const jumpHeight = 2; // height of the jump in world units
-const jumpDuration = 500; // duration of the jump animation in milliseconds
+const jumpHeight = 2; // height of the jump in units
+const jumpDuration = 500; // duration of the jump animation
 let isJumping = false; // flag to prevent multiple jumps
 let jumpStart = null; // starting height of the jump
 
-//keep track of the current movement direction and tween
+//keep track of the current movement direction
 let movementDirection = null;
 let movementTween = null;
 
-  console.log(camera)
-  //event listeners to for movement and jumping
+console.log(camera)
+
+//event listeners to for movement and jumping
 document.addEventListener("keydown", (event) => {
   if (isJumping) {
     return;
@@ -239,14 +273,14 @@ function updateMovementDirection() {
       .normalize();
     const nextPosition = camera.position.clone().add(movementDirection);
     console.log(nextPosition)
-    if (nextPosition.y >= 1 && camera === perspectiveCamera || nextPosition.y <= 1 && camera === perspectiveCamera ) {
+    if (nextPosition.y >= 1 && camera === perspectiveCamera || nextPosition.y <= 1 && camera === perspectiveCamera) {
       console.log(camera)
       movementDirection.y -= nextPosition.y - 1; // adjust y to stay below y=1
-  }
-  else if (camera === orthographicCamera && nextPosition.y >= 7 ||camera === orthographicCamera && nextPosition.y <= 7 ) {
-    movementDirection.y -= nextPosition.y + 7  ; // 
-    console.log(nextPosition.y)
-  }
+    }
+    else if (camera === orthographicCamera && nextPosition.y >= 7 || camera === orthographicCamera && nextPosition.y <= 7) {
+      movementDirection.y -= nextPosition.y + 7; // 
+      console.log(nextPosition.y)
+    }
   } else {
     movementDirection = null;
   }
@@ -491,7 +525,7 @@ grandfather.add(cone);
 
 // rotate grandfather model to make it face the camera in the initial position
 grandfather.rotation.y = -Math.PI / 2;
-grandfather.scale.set(2,2,2);
+grandfather.scale.set(2, 2, 2);
 grandfather.position.z = 8;
 
 // create a listener
@@ -1283,15 +1317,15 @@ var block = new THREE.Group();
 const fbxLoader = new FBXLoader()
 
 fbxLoader.load('./models/blocks/blocks.fbx',
-(blocks) => {
-  // blocks position
-  blocks.scale.set(0.01, 0.01, 0.01); // Modify the scale values as needed
-  block.add(blocks);
-  block.position.x = -20;
-  block.position.y = 0;
-  block.position.z = -25;
-  scene.add(block);
-});
+  (blocks) => {
+    // blocks position
+    blocks.scale.set(0.01, 0.01, 0.01); // Modify the scale values as needed
+    block.add(blocks);
+    block.position.x = -20;
+    block.position.y = 0;
+    block.position.z = -25;
+    scene.add(block);
+  });
 
 //blocks event
 
@@ -1326,7 +1360,7 @@ document.addEventListener("keydown", function (event) {
     ambientLight.intensity = 0.2;
     hemisphereLight.intensity = 1;
     directionalLight.intensity = 2;
-  } else if ( distance > 3 && isShowing) {
+  } else if (distance > 3 && isShowing) {
     isShowing = false;
     uboa.stop(); // stop the sound when the animation is over
     bgsong.play(); // resume bg song
@@ -1391,16 +1425,16 @@ var bed = new THREE.Group();
 const coiso = new FBXLoader()
 
 coiso.load('./models/bed/Bed.fbx',
-(end) => {
+  (end) => {
 
-  // bed position
-  end.scale.set(0.05, 0.05, 0.05); // Modify the scale values as needed
-  bed.add(end);
-  bed.position.x = 30;
-  bed.position.y = 0;
-  bed.position.z = -40;
-  scene.add(bed);
-});
+    // bed position
+    end.scale.set(0.05, 0.05, 0.05); // Modify the scale values as needed
+    bed.add(end);
+    bed.position.x = 30;
+    bed.position.y = 0;
+    bed.position.z = -40;
+    scene.add(bed);
+  });
 
 // bed sfx
 var uboa = new THREE.Audio(listener);
@@ -1450,7 +1484,7 @@ function animate() {
 
   TWEEN.update();
 
-  composer.render(1/60);
+  composer.render(1 / 60);
 
 }
 
