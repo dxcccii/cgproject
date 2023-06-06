@@ -70,6 +70,69 @@ document.body.appendChild(renderer.domElement);
 composer = new EffectComposer(renderer);
 
 const scene = new THREE.Scene();
+
+//skysphere
+const textureLoader = new THREE.TextureLoader();
+
+//beautiful texture i made for the sky
+const texture = textureLoader.load("/Images/skysphere.png");
+const skyGeometry = new THREE.SphereGeometry(500, 60, 40);
+const skyMaterial = new THREE.MeshBasicMaterial({
+  map: texture,
+  side: THREE.BackSide,
+});
+
+// skysphere
+const skySphere = new THREE.Mesh(skyGeometry, skyMaterial);
+skySphere.material.side = THREE.BackSide;
+scene.add(skySphere);
+
+// floor(ed by my ability to still understand whats going on)
+const floorGeometry = new THREE.PlaneGeometry(1000, 1000, 1, 1);
+const floorTexture = textureLoader.load("./Images/floortile.png");
+floorTexture.wrapS = THREE.RepeatWrapping;
+floorTexture.wrapT = THREE.RepeatWrapping;
+floorTexture.repeat.set(200, 200);
+const floorMaterial = new THREE.MeshStandardMaterial({
+  map: floorTexture,
+});
+const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+floor.rotation.x = -Math.PI / 2;
+floor.receiveShadow = true;
+scene.add(floor);
+
+//-----------------------------------------------------------------------------------------------
+// lighting
+//-----------------------------------------------------------------------------------------------
+
+//ambient light
+const ambientLight = new THREE.AmbientLight(0.2);
+scene.add(ambientLight);
+
+// create a directional light
+const directionalLight = new THREE.DirectionalLight(0xff7443, 2);
+directionalLight.castShadow = true;
+directionalLight.position.set(-30, 10, 20);
+scene.add(directionalLight);
+
+//hemisphere light
+const hemisphereLight = new THREE.HemisphereLight(
+  0xffc0cb,
+  0xffc0cb,
+  1
+);
+scene.add(hemisphereLight);
+
+//create a spotlight
+const spotLight = new THREE.SpotLight(
+  0x9452a5,
+  1,
+  75,
+  Math.PI / 6,
+  0.2,
+  0
+);
+
 //-----------------------------------------------------------------------------------------------
 // Perspective camera
 //-----------------------------------------------------------------------------------------------
@@ -193,28 +256,29 @@ const filmPass = new FilmPass(
 );
 
 //-----------------------------------------------------------------------------------------------
-// movement
+// movement event listeners
 //-----------------------------------------------------------------------------------------------
 
 // keep track of the pressed keys
 const pressedKeys = {};
 
-//set up jump animation variables
+// set up jump animation variables
 const gravity = 0.01;
 const jumpHeight = 2; // height of the jump in units
 const jumpDuration = 500; // duration of the jump animation
 let isJumping = false; // flag to prevent multiple jumps
 let jumpStart = null; // starting height of the jump
 
-//keep track of the current movement direction
+// keep track of the current movement direction variables
 let movementDirection = null;
 let movementTween = null;
 
 console.log(camera)
 
-//event listeners to for movement and jumping
+// jump when "SPACE" is pressed
 document.addEventListener("keydown", (event) => {
   if (isJumping) {
+    // dont double jump
     return;
   }
   const keyCode = event.code;
@@ -223,6 +287,7 @@ document.addEventListener("keydown", (event) => {
     updateMovementDirection();
     moveCamera();
   } else if (keyCode === "Space") {
+    //simple jump
     jump();
   }
 });
@@ -241,7 +306,7 @@ document.addEventListener("keyup", (event) => {
 let initialCameraDirection = new THREE.Vector3();
 camera.getWorldDirection(initialCameraDirection);
 
-//movement direction based on pressed keys
+// movement direction based on pressed keys "WASD"
 function updateMovementDirection() {
   let x = 0;
   let z = 0;
@@ -286,8 +351,9 @@ function updateMovementDirection() {
   }
 }
 
-// camera movement
-//DO NOT TOUCH
+//-----------------------------------------------------------------------------------------------
+// smooth camera movement
+//-----------------------------------------------------------------------------------------------
 function moveCamera() {
   if (movementDirection) {
     const distance = movementDirection
@@ -331,15 +397,14 @@ function stopMovement() {
   }
 }
 
-
-
-// add event listener to show/hide a UI (e.g., the game's menu
+// add event listener to start game with click
 document.body.addEventListener('click', function () {
   controls.lock();
 });
 
-// jumping (off the cliff)
-//DO NOT TOUCH
+//-----------------------------------------------------------------------------------------------
+// jumping
+//-----------------------------------------------------------------------------------------------
 function jump() {
   if (isJumping) return; // no double jumping
   isJumping = true;
@@ -367,8 +432,6 @@ function jump() {
     .start();
 }
 
-
-
 // store direction (for science, trust me, i wont give it to NSA)
 function getKeyCode(direction) {
   if (direction.equals(directions.ArrowUp)) {
@@ -384,96 +447,43 @@ function getKeyCode(direction) {
   }
 }
 
-//ambient light
-const ambientLight = new THREE.AmbientLight(0.2);
-scene.add(ambientLight);
+//-----------------------------------------------------------------------------------------------
+// grandfather model
+//-----------------------------------------------------------------------------------------------
 
-// create a directional light
-const directionalLight = new THREE.DirectionalLight(0xff7443, 2);
-directionalLight.castShadow = true;
-directionalLight.position.set(-30, 10, 20);
-scene.add(directionalLight);
+// add grandfather (fist model uau)
+var grandfather = new THREE.Group();
 
-//hemisphere light
-const hemisphereLight = new THREE.HemisphereLight(
-  0xffc0cb,
-  0xffc0cb,
-  1
-);
-scene.add(hemisphereLight);
-
-//create a spotlight
-const spotLight = new THREE.SpotLight(
-  0x9452a5,
-  1,
-  75,
-  Math.PI / 6,
-  0.2,
-  0
-);
-
-//spotlight position
+// spotlight position for grandfather event
 spotLight.position.set(0, 14, 8);
 
-//where the spotlight is pointing at
+// where the spotlight is pointing at
 const targetPosition = new THREE.Vector3(0, 0, 8);
 spotLight.target.position.copy(targetPosition);
 
-//skysphere
-const textureLoader = new THREE.TextureLoader();
-
-//beautiful texture i made for the sky
-const texture = textureLoader.load("/Images/skysphere.png");
-const skyGeometry = new THREE.SphereGeometry(500, 60, 40);
-const skyMaterial = new THREE.MeshBasicMaterial({
-  map: texture,
-  side: THREE.BackSide,
-});
-
-// skysphere
-const skySphere = new THREE.Mesh(skyGeometry, skyMaterial);
-skySphere.material.side = THREE.BackSide;
-scene.add(skySphere);
-
-// floor(ed by my ability to still understand whats going on)
-const floorGeometry = new THREE.PlaneGeometry(1000, 1000, 1, 1);
-const floorTexture = textureLoader.load("./Images/floortile.png");
-floorTexture.wrapS = THREE.RepeatWrapping;
-floorTexture.wrapT = THREE.RepeatWrapping;
-floorTexture.repeat.set(200, 200);
-const floorMaterial = new THREE.MeshStandardMaterial({
-  map: floorTexture,
-});
-const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-floor.rotation.x = -Math.PI / 2;
-floor.receiveShadow = true;
-scene.add(floor);
-
-//add grandfather (fist model uau)
-var grandfather = new THREE.Group();
-
-// create body, head and nose (spheres)
+// textures
 const ClownTexture = textureLoader.load("/Images/clown_lower.png");
 const ClownMaterial = new THREE.MeshStandardMaterial({
   map: ClownTexture,
-  displacementMap: ClownTexture, // Set the displacement map texture
-  displacementScale: 0.1, // Adjust the strength of the displacement effect
+  displacementMap: ClownTexture, // set the displacement map texture
+  displacementScale: 0.1, // adjust the strength of the displacement effect
 });
 
 const FaceTexture = textureLoader.load("/Images/face.png");
 const FaceMaterial = new THREE.MeshStandardMaterial({
   map: FaceTexture,
-  displacementMap: FaceTexture, // Set the displacement map texture
-  displacementScale: 0.1, // Adjust the strength of the displacement effect
+  displacementMap: FaceTexture, // set the displacement map texture
+  displacementScale: 0.1, // adjust the strength of the displacement effect
 });
 
 const NoseTexture = textureLoader.load("/Images/nose.png");
 const NoseMaterial = new THREE.MeshStandardMaterial({
   map: NoseTexture,
-  displacementMap: NoseTexture, // set the displacement map texture
-  displacementScale: 0, // adjust the strength of the displacement effect
+  displacementMap: NoseTexture, 
+  displacementScale: 0, 
 });
 
+// create body, head and nose (spheres)
 const sphereGeometry1 = new THREE.SphereGeometry(2, 32, 32); //body
 const sphereGeometry2 = new THREE.SphereGeometry(1, 32, 32); //head
 const sphereGeometry3 = new THREE.SphereGeometry(0.25, 32, 32); //nose
@@ -493,8 +503,8 @@ sphere3.castShadow = true;
 const HatTexture = textureLoader.load("/Images/hat buttons.png");
 const HatMaterial = new THREE.MeshStandardMaterial({
   map: HatTexture,
-  displacementMap: HatTexture, // Set the displacement map texture
-  displacementScale: 0, // Adjust the strength of the displacement effect
+  displacementMap: HatTexture, 
+  displacementScale: 0, 
 });
 
 const coneGeometry = new THREE.ConeGeometry(1, 2, 32);
@@ -512,10 +522,6 @@ torus.position.y = 5.2;
 torus.rotation.x = -Math.PI / 2;
 torus.castShadow = true;
 
-//const axesHelper = new THREE.AxesHelper( 10 );
-//axesHelper.position.y = 6.2;
-//scene.add( axesHelper );
-
 // add the shapes to the group grandfather
 grandfather.add(torus);
 grandfather.add(sphere1);
@@ -528,7 +534,14 @@ grandfather.rotation.y = -Math.PI / 2;
 grandfather.scale.set(2, 2, 2);
 grandfather.position.z = 8;
 
-// create a listener
+// add grandfather model to scene
+scene.add(grandfather);
+
+//-----------------------------------------------------------------------------------------------
+//gandfather event, audio and sfx
+//-----------------------------------------------------------------------------------------------
+
+// create a listener for audio
 var listener = new THREE.AudioListener();
 
 // add the listener to the camera
@@ -562,15 +575,6 @@ audioLoader.load("./sounds/background song.mp3", function (buffer) {
   }
 });
 
-// collision sfx
-var uhoh = new THREE.Audio(listener);
-var audioLoader = new THREE.AudioLoader();
-audioLoader.load("./sounds/uhoh.mp3", function (buffer) {
-  uhoh.setBuffer(buffer);
-  uhoh.setLoop(false);
-  uhoh.setVolume(0.1);
-});
-
 // grandfather song
 var gfsong = new THREE.Audio(listener);
 var audioLoader = new THREE.AudioLoader();
@@ -580,28 +584,28 @@ audioLoader.load("./sounds/grandfather song.mp3", function (buffer) {
   gfsong.setVolume(0.3);
 });
 
-// add grandfather model to scene
-scene.add(grandfather);
-
 // grandfather event
 var isRotating = false;
 document.addEventListener("keydown", function (event) {
   var distance = grandfather.position.distanceTo(camera.position);
   if (event.key === "e" && distance <= 7 && !isRotating) {
-    hideSidebar(); // hide menu during event
+    hideSidebar(); // hide controls during event
+    // lower lighting
     ambientLight.intensity = 0.2;
     hemisphereLight.intensity = 0.3;
     spotLight.intensity = 5;
     // activate the spotlight for animation
-    scene.add(spotLight);
+    scene.add(spotLight); // turn on spotlight
     scene.add(spotLight.target);
-    bgsong.pause();
+    bgsong.pause(); // stop background song
+    //rotating animation
     isRotating = true;
     var rotationAmount = Math.PI / 100;
     grandfather.rotation.y += rotationAmount;
     console.log("click");
     var startTime = Date.now();
-    gfsong.play();
+    gfsong.play(); // stop background song
+    // if untouched, animation lasts 54 seconds
     var rotateInterval = setInterval(function () {
       var elapsedTime = Date.now() - startTime;
       if (elapsedTime >= 54000) {
@@ -611,12 +615,13 @@ document.addEventListener("keydown", function (event) {
         spotLight.intensity = 0;
         ambientLight.intensity = 0.4;
         hemisphereLight.intensity = 0.5;
-        toggleSidebar(); // show menu after event again
+        toggleSidebar(); // show controls after event again
         gfsong.stop(); // stop the sound when the animation is over
         bgsong.play(); // resume bg song
       }
     }, 54);
   } else if (event.key === "e" && distance <= 7 && isRotating) {
+    //press "E" again to stop event
     isRotating = false;
     gfsong.stop(); // stop the sound when the animation is over
     bgsong.play(); // resume bg song
@@ -626,6 +631,19 @@ document.addEventListener("keydown", function (event) {
     hemisphereLight.intensity = 0.5;
     toggleSidebar(); // show menu after event again
   }
+});
+
+//-----------------------------------------------------------------------------------------------
+//gandfather collision
+//-----------------------------------------------------------------------------------------------
+
+// collision sfx
+var uhoh = new THREE.Audio(listener);
+var audioLoader = new THREE.AudioLoader();
+audioLoader.load("./sounds/uhoh.mp3", function (buffer) {
+  uhoh.setBuffer(buffer);
+  uhoh.setLoop(false);
+  uhoh.setVolume(0.1);
 });
 
 var cameraCollision = false; // flag to track camera collision
@@ -679,7 +697,10 @@ function animateCameraYPosition() {
     .start();
 }
 
-// soda pop
+//-----------------------------------------------------------------------------------------------
+// soda pop model
+//-----------------------------------------------------------------------------------------------
+
 // create a group to hold components of soda pop
 var pop = new THREE.Group();
 
@@ -752,45 +773,38 @@ pop.position.x = 7;
 scene.add(pop);
 pop.position.z = -10;
 
-// soda pop sfx
-var drinking = new THREE.Audio(listener);
-var audioLoader = new THREE.AudioLoader();
-audioLoader.load("./sounds/drink.mp3", function (buffer) {
-  drinking.setBuffer(buffer);
-  drinking.setLoop(false);
-  drinking.setVolume(0.3);
-});
+//-----------------------------------------------------------------------------------------------
+// soda pop bubbles
+//-----------------------------------------------------------------------------------------------
 
-// soda pop lights (point lights)
-
-// light 1
+// shine 1
 var shine1 = new THREE.PointLight(0xe62117, 100, 2, 20);
 shine1.position.set(7, 7.5, -10); // Update the position to be higher above the object
 shine1.rotation.x = Math.PI / 2; // Set the rotation to point upwards
 scene.add(shine1);
 
-// Create a sphere geometry for the light
+// create a sphere geometry for the light
 var lightGeometry = new THREE.SphereGeometry(0.1, 16, 16);
 
-// Create a material that emits light
+// create a material that emits light
 var lightMaterial = new THREE.MeshBasicMaterial({ color: 0xfffffff, emissive: 0xe62117 });
 
-// Increase the intensity and color of the material
+// increase the intensity and color of the material
 lightMaterial.emissiveIntensity = 1;
 lightMaterial.emissiveDistance = 2;
 lightMaterial.emissiveDecay = 200;
 lightMaterial.color.setHex(0xe62117);
 
-// Create a mesh with the light geometry and updated material
+// create a mesh with the light geometry and updated material
 var lightSphere1 = new THREE.Mesh(lightGeometry, lightMaterial);
 
-// Position the light sphere at the same position as the point light
+// position the light sphere at the same position as the point light
 lightSphere1.position.copy(shine1.position);
 
-// Add the light sphere to the scene
+// add the light sphere to the scene
 scene.add(lightSphere1);
 
-//shine 2
+// shine 2
 var shine2 = new THREE.PointLight(0xe62117, 100, 2, 20);
 shine2.position.set(5, 5, -10); // Update the position to be higher above the object
 
@@ -817,7 +831,7 @@ lightSphere2.position.copy(shine2.position);
 // Add the light sphere to the scene
 scene.add(lightSphere2);
 
-//light 3
+// shine 3
 var shine3 = new THREE.PointLight(0xe62117, 100, 2, 20);
 shine3.position.set(9, 2, -10); // Update the position to be higher above the object
 scene.add(shine3);
@@ -843,7 +857,7 @@ lightSphere3.position.copy(shine3.position);
 // Add the light sphere to the scene
 scene.add(lightSphere3);
 
-//light 4
+// shine 4
 var shine4 = new THREE.PointLight(0xe62117, 100, 2, 20);
 shine4.position.set(7, 3, -8.5); // Update the position to be higher above the object
 shine4.rotation.x = Math.PI / 2; // Set the rotation to point upwards
@@ -870,7 +884,7 @@ lightSphere4.position.copy(shine4.position);
 // Add the light sphere to the scene
 scene.add(lightSphere4);
 
-//light 5
+// shine 5
 var shine5 = new THREE.PointLight(0xe62117, 1, 2, 20);
 shine5.position.set(7, 6.5, -11); // Update the position to be higher above the object
 shine5.rotation.x = Math.PI / 2; // Set the rotation to point upwards
@@ -909,8 +923,19 @@ shine4.intensity = 0;
 lightSphere5.intensity = 0;
 shine5.intensity = 0;
 
-
+//-----------------------------------------------------------------------------------------------
 // soda pop event
+//-----------------------------------------------------------------------------------------------
+
+// soda pop sfx
+var drinking = new THREE.Audio(listener);
+var audioLoader = new THREE.AudioLoader();
+audioLoader.load("./sounds/drink.mp3", function (buffer) {
+  drinking.setBuffer(buffer);
+  drinking.setLoop(false);
+  drinking.setVolume(0.3);
+});
+
 // add event listener for key press
 document.addEventListener("keypress", popcleanse, false);
 
@@ -921,15 +946,17 @@ function popcleanse(event) {
   if (event.key === "e" && distance <= 6) {
     // event has occurred
     hideSidebar(); //hide controls
-    console.log("bitchy");
-    cry.stop();
+    //cleanse effects from computer event
+    cry.stop(); 
     composer.removePass(renderPass);
     composer.removePass(glitchPass);
+    //cleanse effects from blanket effect
     composer.removePass(bloomPass);
     composer.removePass(filmPass);
+    //keep depth of field effects
     composer.addPass(renderPass);
     composer.addPass(bokehPass);
-    //event intencitY
+    // lighting changes
     hemisphereLight.intensity = 0;
     lightSphere1.intensity = 1;
     shine1.intensity = 1;
@@ -942,9 +969,9 @@ function popcleanse(event) {
     lightSphere5.intensity = 1;
     shine5.intensity = 1;
     drinking.play(); // play sfx
-    // add a delay of 2 seconds 
+    // add a delay of 2 seconds (so the light only return to normal after the drinking sound is over)
     setTimeout(function () {
-      toggleSidebar();
+      toggleSidebar(); // show controls again
       hemisphereLight.intensity = 1;
       lightSphere1.intensity = 0;
       shine1.intensity = 0;
@@ -956,9 +983,13 @@ function popcleanse(event) {
       shine4.intensity = 0;
       lightSphere5.intensity = 0;
       shine5.intensity = 0;
-    }, 2000); // Delay of 2 seconds
+    }, 2000); // Delay of 2 seconds 
   }
 }
+
+//-----------------------------------------------------------------------------------------------
+// soda pop collision
+//-----------------------------------------------------------------------------------------------
 
 var cameraCollisionPop = false; // flag to track camera collision
 
@@ -1011,7 +1042,11 @@ function animateCameraYPositionPop() {
     .start();
 }
 
-// make blanket
+//-----------------------------------------------------------------------------------------------
+// blanket model
+//-----------------------------------------------------------------------------------------------
+
+//blanket geometry
 var blanketgeometry = new THREE.BoxGeometry(10, 0.5, 7); // Adjust the dimensions as desired
 
 // call textures for blanket
@@ -1039,6 +1074,10 @@ blanket.castShadow = true;
 // add blanket to scene
 scene.add(blanket);
 
+//-----------------------------------------------------------------------------------------------
+// blanket event
+//-----------------------------------------------------------------------------------------------
+
 // blanket sound
 var blsong = new THREE.Audio(listener);
 var audioLoader = new THREE.AudioLoader();
@@ -1049,7 +1088,6 @@ audioLoader.load("./sounds/blanket song.mp3", function (buffer) {
 });
 
 //blanket event
-
 document.addEventListener("keypress", rotateSky, false);
 let rotationZ = 0;
 let isRotatingSky = false;
@@ -1059,13 +1097,15 @@ const maxRotationX = (10 * Math.PI) / 180; // 10 degrees in radians
 
 function rotateSky(event) {
   const interactKey = "e";
-  const distance = camera.position.distanceTo(blanket.position);
-  const threshold = 4; // Adjust this value according to your needs
 
-  // Get the yaw (rotation around the y-axis)
+  // doesnt allow event to run ifacing forwardf not 
+  const distance = camera.position.distanceTo(blanket.position);
+  const threshold = 4; 
+
+  // get the yaw (rotation around the y-axis)
   const yaw = camera.rotation.y;
 
-  // Calculate the angle between the current rotation and facing forward (0 degrees)
+  // calculate the angle between the current rotation and facing forward (0 degrees)
   const angleToForward = Math.abs(yaw) % (Math.PI * 2);
   if (
     event.key === interactKey &&
@@ -1073,13 +1113,14 @@ function rotateSky(event) {
     distance < threshold &&
     camera.rotation.y >= minRotationX &&
     camera.rotation.y <= maxRotationX &&
-    angleToForward < Math.PI / 4 // Allow up to 45 degrees yaw deviation from facing forward
+    angleToForward < Math.PI / 4 // allow up to 45 degrees yaw deviation from facing forward
   ) {
-    // Stop keyboard, mouse inputs, and mouse movement
+    // stop keyboard, mouse inputs, and mouse movement during event
     document.addEventListener("keydown", preventDefaultHandler, true);
     document.addEventListener("mousedown", preventDefaultHandler, true);
     document.addEventListener("mousemove", preventDefaultHandler, true);
     console.log(camera.rotation);
+    // sound shenannigans
     bgsong.pause();
     blsong.play();
     hideSidebar(); // hide menu during event
@@ -1087,7 +1128,7 @@ function rotateSky(event) {
     if (!isRotatingSky) {
       isAnimationInProgress = true;
 
-      // Tilt up animation
+      // tilt up animation
       const tiltUpTween = new TWEEN.Tween(camera.rotation)
         .to({ x: Math.PI / 3 }, 5000)
         .easing(TWEEN.Easing.Quadratic.Out)
@@ -1095,12 +1136,12 @@ function rotateSky(event) {
 
       tiltUpTween.onComplete(() => {
         const targetRotationZ = rotationZ + Math.PI;
-
+        //rotate sky
         new TWEEN.Tween(skySphere.rotation)
           .to({ x: targetRotationZ * 8 }, 20000)
           .easing(TWEEN.Easing.Quadratic.Out)
           .onComplete(() => {
-            // Tilt back animation
+            // tilt back animation
             const tiltBackTween = new TWEEN.Tween(camera.rotation)
               .to({ x: 0 }, 1000)
               .easing(TWEEN.Easing.Quadratic.Out)
@@ -1112,7 +1153,7 @@ function rotateSky(event) {
               blsong.stop();
               bgsong.play();
               toggleSidebar(); // show menu after event again
-              // Resume keyboard, mouse inputs, and mouse movement
+              // resume keyboard, mouse inputs, and mouse movement
               document.removeEventListener(
                 "keydown",
                 preventDefaultHandler,
@@ -1131,6 +1172,7 @@ function rotateSky(event) {
 
 
             });
+            //add post prossecing effects after event
             composer.addPass(renderPass);
             composer.addPass(bloomPass);
             composer.addPass(filmPass);
@@ -1144,35 +1186,37 @@ function rotateSky(event) {
   }
 }
 
+// stop movement inputs
 function preventDefaultHandler(event) {
   event.preventDefault();
   event.stopPropagation();
 }
 
-// add computer model
-// Declare the computer variable
+//-----------------------------------------------------------------------------------------------
+// computer model import
+//-----------------------------------------------------------------------------------------------
 
+// declare the computer variables for model and group
 var PC = new THREE.Group();
-
 var computer;
 
-// Load the model
+// load the model
 var loader = new OBJLoader();
 loader.load(
   "./models/computer/desktop_shortwires.obj",
   function (object) {
-    // Assign the loaded object to the computer variable
+    // assign the loaded object to the computer variable
     computer = object;
 
-    // Load the texture
+    // load the texture
     var textureLoader = new THREE.TextureLoader();
     textureLoader.load(
       "./models/computer/computer_texture.png",
       function (texture) {
-        // Create a material with the loaded texture
+        // create a material with the loaded texture
         var material = new THREE.MeshBasicMaterial({ map: texture });
 
-        // Apply the texture to the computer
+        // apply the texture to the computer
         computer.traverse(function (child) {
           if (child instanceof THREE.Mesh) {
             child.material = material;
@@ -1190,6 +1234,10 @@ loader.load(
     );
   }
 );
+
+//-----------------------------------------------------------------------------------------------
+// computer event
+//-----------------------------------------------------------------------------------------------
 
 // computer sfx
 var csong = new THREE.Audio(listener);
@@ -1209,17 +1257,15 @@ audioLoader.load("./sounds/crying.mp3", function (buffer) {
   cry.setVolume(0.03);
 });
 
-//computer event
-// Add event listener for key press
+// add event listener for key press
 document.addEventListener("keypress", blueScreen, false);
 
-// Set up a flag to track if the blue screen event has already occurred
+// set up a flag to track if the blue screen event has already occurred since it's a one time event
 var blueScreenEventOccurred = false;
 
-// Handle the keypress
+// handle the keypress
 function blueScreen(event) {
   var distance = PC.position.distanceTo(camera.position);
-
   if (event.key === "e" && distance <= 14 && !blueScreenEventOccurred) {
     // event has occurred
     blueScreenEventOccurred = true;
@@ -1227,7 +1273,7 @@ function blueScreen(event) {
     csong.play(); // play sfx
     // add a delay of 1 second before changing the texture
     setTimeout(function () {
-      //post processing
+      // post processing
       composer.addPass(renderPass);
       composer.addPass(glitchPass);
       composer.addPass(bokehPass);
@@ -1250,13 +1296,17 @@ function blueScreen(event) {
       );
     }, 1500); // Delay of 1.5 second
 
-    //retunr controls
+    // return controls
     setTimeout(function () {
       toggleSidebar();
       cry.play();
     }, 7000); // Delay of 7 seconds (duration of sfx) to return controls
   }
 }
+
+//-----------------------------------------------------------------------------------------------
+// computer collision
+//-----------------------------------------------------------------------------------------------
 
 var cameraCollisionPC = false; // flag to track camera collision
 
@@ -1309,11 +1359,12 @@ function animateCameraYPositionPC() {
     .start();
 }
 
-// add blocks model
-// Declare the computer variable
+//-----------------------------------------------------------------------------------------------
+// blocks model import 
+//-----------------------------------------------------------------------------------------------
 
+// declare the block variables for group and loader
 var block = new THREE.Group();
-
 const fbxLoader = new FBXLoader()
 
 fbxLoader.load('./models/blocks/blocks.fbx',
@@ -1327,7 +1378,9 @@ fbxLoader.load('./models/blocks/blocks.fbx',
     scene.add(block);
   });
 
-//blocks event
+//-----------------------------------------------------------------------------------------------
+// blocks event
+//-----------------------------------------------------------------------------------------------
 
 // blocks sfx
 var uboa = new THREE.Audio(listener);
@@ -1338,41 +1391,52 @@ audioLoader.load("./sounds/uboa.mp3", function (buffer) {
   uboa.setVolume(0.05);
 });
 
-// Add event listener for key press
+// flag for event
 var isShowing = false;
+
+// add event listener for key press
 document.addEventListener("keydown", function (event) {
   var distance = block.position.distanceTo(camera.position);
   if (event.key === "e" && distance <= 3 && !isShowing) {
     hideSidebar(); // hide menu during event
-    toggleBlocks();
-    bgsong.pause();
+    toggleBlocks(); // show blocks jumpscare
     isShowing = true;
+    // sound shenannigans
+    bgsong.pause();
     uboa.play();
+    //turn off all lights
     ambientLight.intensity = 0;
     hemisphereLight.intensity = 0;
     directionalLight.intensity = 0;
   } else if (event.key === "e" && distance <= 3 && isShowing) {
+    // press "E" again to stop event
     isShowing = false;
     uboa.stop(); // stop the sound when the animation is over
     bgsong.play(); // resume bg song
-    toggleSidebar(); // show menu after event again
-    hideBlocks();
+    toggleSidebar(); // show controls after event again
+    hideBlocks(); // hide jumpscare
+    //return lighting to normal
     ambientLight.intensity = 0.2;
     hemisphereLight.intensity = 1;
     directionalLight.intensity = 2;
   } else if (distance > 3 && isShowing) {
+    // run away to stop event
     isShowing = false;
     uboa.stop(); // stop the sound when the animation is over
     bgsong.play(); // resume bg song
-    toggleSidebar(); // show menu after event again
-    hideBlocks();
+    toggleSidebar(); // show controls after event again
+    hideBlocks(); // hide jumscare
+    //return lighting to normal
     ambientLight.intensity = 0.2;
     hemisphereLight.intensity = 1;
     directionalLight.intensity = 2;
   };
 });
 
-//blocks collision
+//-----------------------------------------------------------------------------------------------
+// blocks collision
+//-----------------------------------------------------------------------------------------------
+
 var cameraCollisionBlocks = false; // flag to track camera collision
 
 // check for collision between the camera and computer
@@ -1416,12 +1480,12 @@ function animateCameraBounceBlocks() {
   }
 }
 
-//bed (end game)
+//-----------------------------------------------------------------------------------------------
+// bed model import
+//-----------------------------------------------------------------------------------------------
 
-// add bed model
-
+// variables for group and loader
 var bed = new THREE.Group();
-
 const coiso = new FBXLoader()
 
 coiso.load('./models/bed/Bed.fbx',
@@ -1435,6 +1499,10 @@ coiso.load('./models/bed/Bed.fbx',
     bed.position.z = -40;
     scene.add(bed);
   });
+
+//-----------------------------------------------------------------------------------------------
+// bed event (game end)
+//-----------------------------------------------------------------------------------------------
 
 // bed sfx
 var uboa = new THREE.Audio(listener);
@@ -1458,21 +1526,77 @@ audioLoader.load("./sounds/home.mp3", function (buffer) {
 document.addEventListener("keydown", function (event) {
   var distance = bed.position.distanceTo(camera.position);
   if (event.key === "e" && distance <= 7) {
+    //sound shenannigans
     bgsong.pause();
     home.play();
+    //display end screen
     ending();
   }
 });
 
+//-----------------------------------------------------------------------------------------------
+// bed collision
+//-----------------------------------------------------------------------------------------------
+
+var cameraCollisionBed = false; // flag to track camera collision
+
+// check for collision between the camera and computer
+function checkCameraCollisionBed() {
+  var cameraPosition = camera.position;
+  var bedPosition = bed.position;
+  var distance = cameraPosition.distanceTo(bedPosition);
+
+  if (distance < 6) {
+    // collision detected
+    cameraCollisionBed = true;
+  }
+}
+
+// animate the camera's bounce-back motion
+function animateCameraBounceBed() {
+  if (cameraCollisionBed) {
+    uhoh.play(); // play collision sfx
+    // calculate the approach position
+    var direction = new THREE.Vector3()
+      .subVectors(camera.position, bed.position)
+      .normalize();
+
+    // calculate the target position of bounce-back
+    var targetPosition = new THREE.Vector3(
+      camera.position.x,
+      camera.position.y,
+      camera.position.z
+    );
+    targetPosition.add(direction.multiplyScalar(4));
+
+    // use TWEEN to animate the bounce-back motion of x and z
+    new TWEEN.Tween(camera.position)
+      .to(targetPosition, 200) // set the duration of the animation
+      .easing(TWEEN.Easing.Back.Out) // use an easing function for the bounce effect
+      .onComplete(function () {
+        animateCameraYPosition();
+        cameraCollisionBed = false; // reset the camera collision flag
+      })
+      .start();
+  }
+}
+
+//-----------------------------------------------------------------------------------------------
+// render and animate scene
+//-----------------------------------------------------------------------------------------------
 
 // render the scene
 function animate() {
+
+  //animate grandfather
   requestAnimationFrame(animate);
   if (isRotating) {
     grandfather.rotation.y += Math.PI / 100;
   } else {
     grandfather.rotation.y += null;
   }
+
+  //collision checkers
   checkCameraCollision();
   checkCameraCollisionPop();
   animateCameraBounce();
@@ -1481,6 +1605,8 @@ function animate() {
   animateCameraBouncePC();
   checkCameraCollisionBlocks();
   animateCameraBounceBlocks();
+  checkCameraCollisionBed();
+  animateCameraBounceBed();
 
   TWEEN.update();
 

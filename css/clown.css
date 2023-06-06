@@ -18,12 +18,20 @@ body {
   height: auto;
 }
 
+.show-sidebar {
+  transform: translateX(0px); /* Slide the sidebar into view */
+}
+
+.hide-sidebar {
+  transform: translateX(250px); /* Slide the sidebar into view */
+}
+
 .show-blocks {
   transform: translateY(0px); /* Slide the sidebar into view */
 }
 
 .hide-blocks {
-  transform: translateY(-700px); /* Slide the sidebar into view */
+  transform: translateY(-800px); /* Slide the sidebar into view */
 }
 
 .blocks {
