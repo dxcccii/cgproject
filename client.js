@@ -41,6 +41,12 @@ function hideBlocks() {
   sidebar.classList.toggle("show-blocks");
 }
 
+// end
+function ending() {
+  var ending = document.getElementById("end");
+  ending.classList.toggle("end-fade");
+}
+
 // set up the scene, camera, and renderer
 renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.shadowMap.enabled = true;
@@ -1287,7 +1293,6 @@ fbxLoader.load('./models/blocks/blocks.fbx',
 //blocks event
 
 // blocks sfx
-// crying sfx
 var uboa = new THREE.Audio(listener);
 var audioLoader = new THREE.AudioLoader();
 audioLoader.load("./sounds/uboa.mp3", function (buffer) {
@@ -1373,6 +1378,51 @@ function animateCameraBounceBlocks() {
       .start();
   }
 }
+
+//bed (end game)
+
+// add bed model
+
+var bed = new THREE.Group();
+
+const coiso = new FBXLoader()
+
+coiso.load('./models/bed/Bed.fbx',
+(end) => {
+
+  // bed position
+  end.scale.set(0.1, 0.1, 0.1); // Modify the scale values as needed
+  bed.add(end);
+  bed.position.x = 30;
+  bed.position.y = 0;
+  bed.position.z = -40;
+  scene.add(bed);
+});
+
+// bed sfx
+var uboa = new THREE.Audio(listener);
+var audioLoader = new THREE.AudioLoader();
+audioLoader.load("./sounds/uboa.mp3", function (buffer) {
+  uboa.setBuffer(buffer);
+  uboa.setLoop(true);
+  uboa.setVolume(0.05);
+});
+
+//fade to black function
+function toggleFade() {
+  var element = document.querySelector('.end');
+  element.classList.toggle('.wfade-in');
+}
+
+// Add event listener for key press
+document.addEventListener("keydown", function (event) {
+  var distance = bed.position.distanceTo(camera.position);
+  if (event.key === "e" && distance <= 7) {
+    bgsong.pause();
+    uboa.play();
+    ending();
+  }
+});
 
 
 // render the scene
