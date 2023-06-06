@@ -379,7 +379,7 @@ const spotLight = new THREE.SpotLight(
 );
 
 //spotlight position
-spotLight.position.set(0, 7, 0);
+spotLight.position.set(0, 14, 8);
 
 //where the spotlight is pointing at
 const targetPosition = new THREE.Vector3(0, 0, 8);
@@ -491,6 +491,7 @@ grandfather.add(cone);
 
 // rotate grandfather model to make it face the camera in the initial position
 grandfather.rotation.y = -Math.PI / 2;
+grandfather.scale.set(2,2,2);
 grandfather.position.z = 8;
 
 // create a listener
@@ -1147,7 +1148,7 @@ loader.load(
         // computer position
         computer.scale.set(20, 20, 20); // Modify the scale values as needed
         PC.add(computer);
-        PC.position.x = 30;
+        PC.position.x = 35;
         PC.position.y = 2.5;
         PC.position.z = -10;
         scene.add(PC);
