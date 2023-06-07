@@ -453,6 +453,8 @@ function getKeyCode(direction) {
 
 // add grandfather (fist model uau)
 var grandfather = new THREE.Group();
+var head = new THREE.Group();
+var hat = new THREE.Group();
 
 // spotlight position for grandfather event
 spotLight.position.set(0, 14, 8);
@@ -522,12 +524,19 @@ torus.position.y = 5.2;
 torus.rotation.x = -Math.PI / 2;
 torus.castShadow = true;
 
-// add the shapes to the group grandfather
-grandfather.add(torus);
+// group head
+head.add(sphere2);
+head.add(sphere3);
+
+// group hat
+hat.add(cone);
+hat.add(torus);
+
+// group grandfather
+grandfather.add(hat);
+grandfather.add(head);
 grandfather.add(sphere1);
-grandfather.add(sphere2);
-grandfather.add(sphere3);
-grandfather.add(cone);
+
 
 // rotate grandfather model to make it face the camera in the initial position
 grandfather.rotation.y = -Math.PI / 2;
