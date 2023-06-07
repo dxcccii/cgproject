@@ -25,9 +25,9 @@ the project.
 to view the application run a terminar window from the project folder and type "npx vite" after all 
 instalations are complete, then in your browser type the localhost shown on the terminal window.
 _____________________________________________________________________________________________________                                                                    
-                                 __   __   _  _  _|_  __,   __ _|_  ,  
-                                /    /  \_/ |/ |  |  /  |  /    |  / \_
-                                \___/\__/   |  |_/|_/\_/|_/\___/|_/ \/ 
+                                  __   __   _  _  _|_  __,   __ _|_  ,  
+                                 /    /  \_/ |/ |  |  /  |  /    |  / \_
+                                 \___/\__/   |  |_/|_/\_/|_/\___/|_/ \/ 
 _____________________________________________________________________________________________________                                        
 
 contact dxcccii at https://dxcccii.neocities.org/ or by email (for now) at al66766@utad.eu
