@@ -19,10 +19,10 @@ ________________________________________________________________________________
 _______________________________________________________________________________________________________
 
 please refer to the three.js website at https://threejs.org/docs/#manual/en/introduction/Installation
-and follow option 1 to install node.js and vite.js, since live server extention will not work to view
+and follow option 1 to install node.js and vite.js, since thelive server extention will not work to view
 the project.
 
-to view the application run a terminar window from the project folder and type "npx vite" after all 
+to view the application run a terminal window from the project folder and type "npx vite" after all 
 instalations are complete, then in your browser type the localhost shown on the terminal window.
 _______________________________________________________________________________________________________                                                                    
                                     __   __   _  _  _|_  __,   __ _|_  ,  
